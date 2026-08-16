@@ -348,7 +348,7 @@ function mixed(box,arr,pfx,sn){arr.forEach((it,i)=>{const d=document.createEleme
  d.innerHTML=h;box.appendChild(d);});}
 mixed($('trBox'),TR,'t',3);mixed($('amBox'),AM,'a',4);
 for(let i=0;i<12;i++){const r=document.createElement('div');r.className='gen-row';
- r.innerHTML=`<span class="gen-i">${String(i+1).padStart(2,'0')}</span><input type="text" id="gen${i}" placeholder="${i<2?'короткая фраза, создающая вопрос…':''}">`;$('genBox').appendChild(r);}
+ r.innerHTML=`<span class="gen-i">${String(i+1).padStart(2,'0')}</span><input type="text" id="gen${i}" placeholder="Хук ${i+1}">`;$('genBox').appendChild(r);}
 function ranking(box,data,pfx,mx,sn){data.forEach((bl,bi)=>{const d=document.createElement('div');d.className='item';
  let h=`<div class="item-n">${sn}.${bi+1}</div>`;
  bl.forEach((s,si)=>{const[txt,key]=s.split('|');let o='<option value="">—</option>';
