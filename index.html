@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тест для медиабаеров</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#ECEEF0;--card:#FFF;--ink:#10161F;--ink-2:#5C6773;--line:#C9CFD6;--line-2:#E3E7EB;
+--indigo:#2B3A8C;--indigo-w:#DDE1F2;--pass:#1F6B4E;--pass-w:#DCEAE3;--fail:#A32B22;--fail-w:#F4DEDB;--amber:#8A6100;--amber-w:#F6EBD2}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;line-height:1.55;font-size:15px}
+.wrap{max-width:840px;margin:0 auto;padding:0 20px 140px}
+header.top{position:relative;padding:44px 0 26px;margin-bottom:6px;border-bottom:2px solid var(--ink)}
+header.top::before{content:"";position:absolute;inset:0 0 26px 0;z-index:0;opacity:.5;
+background-image:linear-gradient(var(--line-2) 1px,transparent 1px),linear-gradient(90deg,var(--line-2) 1px,transparent 1px);
+background-size:22px 22px;-webkit-mask-image:linear-gradient(180deg,#000,transparent);mask-image:linear-gradient(180deg,#000,transparent)}
+header.top>*{position:relative;z-index:1}
+.meta{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(30px,6vw,50px);line-height:1.02;letter-spacing:-.02em;margin:16px 0 10px}
+.lede{color:var(--ink-2);max-width:62ch}
+.strip{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.strip input{font-family:'JetBrains Mono',monospace;font-size:13px;border:1px solid var(--line);border-radius:2px;padding:9px 11px;background:var(--card);color:var(--ink);flex:1;min-width:150px}
+.timerbar{position:sticky;top:0;z-index:50;background:var(--ink);color:var(--paper);display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 20px;font-family:'JetBrains Mono',monospace;font-size:12.5px;margin:0 -20px}
+.timerbar b{font-weight:700;font-size:15px}
+.timerbar button{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:transparent;color:var(--paper);border:1px solid rgba(255,255,255,.4);padding:5px 12px;border-radius:2px;cursor:pointer}
+.timerbar button:hover{background:rgba(255,255,255,.12)}
+.timerbar.warn{background:#8A6100}
+.timerbar.over{background:#A32B22}
+.timerbar button[disabled]{opacity:.35;cursor:default}
+#gate{position:fixed;inset:0;z-index:80;background:rgba(16,22,31,.93);color:#fff;
+ display:flex;align-items:center;justify-content:center;padding:24px}
+#gate .card{max-width:520px;text-align:left}
+#gate h2{font-family:'Bricolage Grotesque',sans-serif;font-size:26px;margin:0 0 12px;font-weight:800}
+#gate p{font-size:14.5px;opacity:.85;margin:0 0 10px;line-height:1.55}
+#gate ul{font-size:14px;opacity:.85;padding-left:18px;margin:0 0 18px}
+#gate li{margin-bottom:6px}
+#gate button{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;
+ background:#fff;color:#10161F;border:none;padding:14px 28px;border-radius:2px;cursor:pointer}
+body.locked .wrap{filter:blur(3px);pointer-events:none;user-select:none}
+details.cheat{background:var(--card);border:1px solid var(--line);border-radius:2px;margin:24px 0 0;padding:0}
+details.cheat summary{cursor:pointer;padding:14px 18px;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.cheat summary::after{content:"развернуть";font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-2);font-weight:400}
+details.cheat[open] summary::after{content:"свернуть"}
+details.cheat .body{padding:0 18px 18px;border-top:1px solid var(--line-2)}
+.gl{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;margin-top:14px}
+.gl div{font-size:13.5px;padding:8px 10px;background:var(--paper);border-radius:2px}
+.gl b{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--indigo)}
+.sec{margin:60px 0 0;border-top:2px solid var(--ink);padding-top:16px}
+.sec-h{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.sec-tag{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;background:var(--ink);color:var(--paper);padding:4px 9px;white-space:nowrap;margin-top:3px}
+.sec-h h2{font-family:'Bricolage Grotesque',sans-serif;font-size:23px;font-weight:700;margin:0;letter-spacing:-.01em}
+.sec-time{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-2);border:1px solid var(--line);padding:3px 8px;margin-left:auto;white-space:nowrap}
+.sec-desc{color:var(--ink-2);font-size:14px;margin:10px 0 26px;max-width:66ch}
+.sec-desc b{color:var(--ink)}
+.item{background:var(--card);border:1px solid var(--line);border-radius:2px;padding:15px 17px;margin-bottom:11px}
+.item-n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-2);margin-bottom:8px}
+.q{font-size:14.5px;margin-bottom:11px}
+.q code{font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--paper);padding:1px 5px;border-radius:2px}
+input.num{font-family:'JetBrains Mono',monospace;font-size:14px;width:150px;padding:8px 10px;border:1px solid var(--line);border-radius:2px;background:var(--paper);color:var(--ink)}
+.unit{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-2);margin-left:8px}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line-2);border-radius:2px;cursor:pointer;font-size:14px;background:var(--paper)}
+.opt:hover{border-color:var(--indigo)}
+.opt input{margin-top:3px;accent-color:var(--indigo);flex-shrink:0}
+.rules{background:var(--ink);color:var(--paper);padding:22px 24px;border-radius:2px;margin-bottom:22px}
+.rules.amend{background:var(--indigo)}
+.rules h3{font-family:'Bricolage Grotesque',sans-serif;font-size:19px;margin:0 0 6px;font-weight:700}
+.rules .sysdesc{opacity:.75;font-size:13.5px;margin-bottom:16px}
+.rules ol{margin:0;padding-left:20px}
+.rules li{margin-bottom:11px;font-size:14.5px}
+.rules code{font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.16);padding:1px 5px;border-radius:2px;font-size:13px}
+.ex{background:rgba(255,255,255,.1);border-left:3px solid rgba(255,255,255,.4);padding:9px 12px;margin-top:8px;font-size:13.5px;border-radius:2px}
+.brief{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--indigo);padding:18px 20px;border-radius:2px;margin-bottom:20px}
+.brief h3{font-family:'Bricolage Grotesque',sans-serif;font-size:17px;margin:0 0 10px;font-weight:700}
+.brief dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px}
+.brief dt{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--indigo);padding-top:3px;white-space:nowrap}
+.brief dd{margin:0}
+.rank-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line-2)}
+.rank-row:last-of-type{border-bottom:none}
+.rank-txt{flex:1;font-size:14px}
+select.rk{font-family:'JetBrains Mono',monospace;font-size:14px;width:56px;height:34px;text-align:center;border:1px solid var(--ink);border-radius:2px;background:var(--card);color:var(--ink);flex-shrink:0}
+select.rk.dup{border-color:var(--fail);background:var(--fail-w);color:var(--fail)}
+.rk-flag{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fail);min-height:14px;margin-top:7px}
+.asq-scen{font-weight:600;margin-bottom:4px}
+.asq-cause input{width:100%;font-family:'Inter',sans-serif;font-size:14px;border:1px solid var(--line);border-radius:2px;padding:9px 10px;background:var(--paper);color:var(--ink);margin-bottom:14px}
+.asq-dim{padding:10px 0;border-top:1px solid var(--line-2)}
+.asq-q{font-size:13.5px;margin-bottom:7px}
+.scale{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-2)}
+.scale label{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.scale input{width:16px;height:16px;accent-color:var(--indigo)}
+.scale .cap{max-width:125px;text-align:center;line-height:1.3}
+.oc-row{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid var(--line-2)}
+.oc-row:last-child{border-bottom:none}
+.oc-name{flex:1;font-family:'JetBrains Mono',monospace;font-size:13px}
+.oc-cat{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 4px;padding-top:10px;border-top:1px solid var(--line-2)}
+.oc-cat:first-child{border-top:none;padding-top:0;margin-top:0}
+.oc-scale{display:flex;gap:5px}
+.oc-scale label{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9.5px;font-family:'JetBrains Mono',monospace;color:var(--ink-2);cursor:pointer}
+.oc-scale input{width:15px;height:15px;accent-color:var(--indigo)}
+.gen-row{display:flex;gap:10px;align-items:center;margin-bottom:7px}
+.gen-i{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-2);width:22px;flex-shrink:0}
+.gen-row input{flex:1;font-family:'Inter',sans-serif;font-size:14px;border:1px solid var(--line-2);border-radius:2px;padding:8px 10px;background:var(--paper);color:var(--ink)}
+.gen-row input:focus{border-color:var(--indigo);background:var(--card)}
+textarea{width:100%;min-height:76px;font-family:'Inter',sans-serif;font-size:14px;border:1px solid var(--line);border-radius:2px;padding:10px;resize:vertical;background:var(--paper);color:var(--ink)}
+.submit-zone{margin-top:52px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+button.go{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;background:var(--ink);color:var(--paper);border:none;padding:15px 30px;border-radius:2px;cursor:pointer}
+button.go:hover{background:var(--indigo)}
+.hint{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-2)}
+#out{display:none;margin-top:60px;border-top:3px solid var(--ink);padding-top:26px}
+#out.on{display:block}
+.verdict-card{padding:26px 28px;border-radius:2px;margin-bottom:26px}
+.verdict-card.hire{background:var(--pass-w);border-left:5px solid var(--pass)}
+.verdict-card.maybe{background:var(--amber-w);border-left:5px solid var(--amber)}
+.verdict-card.no{background:var(--fail-w);border-left:5px solid var(--fail)}
+.v-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+.v-title{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(24px,4.5vw,34px);font-weight:800;letter-spacing:-.02em;margin:6px 0 10px;line-height:1.05}
+.v-body ul{margin:10px 0 0;padding-left:20px}.v-body li{margin-bottom:5px}
+.scoregrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:11px;margin-bottom:26px}
+.scorecell{background:var(--card);border:1px solid var(--line);padding:14px 15px;border-radius:2px}
+.sc-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.sc-val{font-family:'Bricolage Grotesque',sans-serif;font-size:30px;font-weight:800;line-height:1.1;margin:4px 0 2px}
+.sc-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-2)}
+.sc-val.p{color:var(--pass)}.sc-val.a{color:var(--amber)}.sc-val.f{color:var(--fail)}
+.barblock{background:var(--card);border:1px solid var(--line);padding:18px 20px;border-radius:2px;margin-bottom:14px}
+.barblock h4{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;margin:0 0 14px;font-weight:700}
+.bar{margin-bottom:12px}
+.bar-l{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:12px;margin-bottom:4px;gap:10px}
+.bar-t{height:20px;background:var(--paper);border:1px solid var(--line-2);overflow:hidden}
+.bar-f{height:100%;width:0;transition:width .9s cubic-bezier(.2,.8,.2,1);background:var(--indigo)}
+.bar-f.ko{background:var(--fail)}.bar-f.tgt{background:var(--pass)}
+table.flags{width:100%;border-collapse:collapse;font-size:13.5px}
+table.flags td{border-bottom:1px solid var(--line-2);padding:9px 6px;vertical-align:top}
+table.flags td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;width:100px}
+.tg{color:var(--pass);font-weight:600}.tr{color:var(--fail);font-weight:600}.ta{color:var(--amber);font-weight:600}
+.manual{background:var(--indigo-w);border-left:4px solid var(--indigo);padding:18px 20px;border-radius:2px;margin-top:22px;font-size:14px}
+.manual h4{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;margin:0 0 8px}
+.manual .qa{border-top:1px solid rgba(43,58,140,.25);padding-top:10px;margin-top:10px}
+.manual .qa b{font-family:'JetBrains Mono',monospace;font-size:11px;display:block;color:var(--indigo);margin-bottom:3px}
+.tagbox{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+.tagbox label{display:flex;align-items:center;gap:6px;font-size:12.5px;background:var(--card);border:1px solid var(--line);padding:5px 9px;border-radius:2px;cursor:pointer}
+.tagbox label.neg{border-color:var(--fail);color:var(--fail)}
+.tagbox input{accent-color:var(--indigo)}
+.anglelist{font-size:13.5px;margin:8px 0 0;padding-left:20px}.anglelist li{margin-bottom:3px}
+footer{margin-top:70px;padding-top:16px;border-top:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-2);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+@media (max-width:600px){.oc-row{flex-direction:column;align-items:flex-start;gap:6px}.sec-time{margin-left:0}.brief dl{grid-template-columns:1fr}}
+@media print{.timerbar,button{display:none}}
+:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body class="locked">
+
+<div id="mobile" style="display:none;position:fixed;inset:0;z-index:95;background:#10161F;color:#fff;align-items:center;justify-content:center;padding:28px;text-align:center">
+ <div style="max-width:420px">
+  <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-size:24px;margin:0 0 12px;font-weight:800">Откройте с компьютера</h2>
+  <p style="font-size:15px;opacity:.85;line-height:1.6">Тест занимает около полутора часов и содержит таблицы, которые на телефоне заполнять неудобно. Ссылка остаётся действительной — просто откройте её на компьютере или ноутбуке.</p>
+ </div></div>
+
+<div id="linkerr" style="display:none;position:fixed;inset:0;z-index:94;background:#10161F;color:#fff;align-items:center;justify-content:center;padding:28px;text-align:center">
+ <div style="max-width:440px">
+  <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-size:24px;margin:0 0 12px;font-weight:800" id="lerr-t">Ссылка недействительна</h2>
+  <p style="font-size:15px;opacity:.85;line-height:1.6" id="lerr-b">Проверьте, что открыли ссылку из письма целиком. Если она не работает — напишите тому, кто её прислал.</p>
+ </div></div>
+
+<div id="done" style="display:none;position:fixed;inset:0;z-index:96;background:#ECEEF0;color:#10161F;align-items:center;justify-content:center;padding:28px">
+ <div style="max-width:460px;text-align:center">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5C6773">Тест завершён</div>
+  <div id="score10" style="font-family:'Bricolage Grotesque',sans-serif;font-size:72px;font-weight:800;line-height:1;margin:10px 0 4px">—</div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#5C6773;margin-bottom:22px">из 10</div>
+  <p style="font-size:15px;line-height:1.6;margin:0 0 10px">Спасибо, ваши ответы сохранены.</p>
+  <p style="font-size:15px;line-height:1.6;color:#5C6773;margin:0">С вами свяжутся в течение трёх рабочих дней. Если возникнут вопросы — напишите тому, кто прислал ссылку.</p>
+ </div></div>
+
+<div id="gate"><div class="card">
+<h2>Перед началом</h2>
+<p id="who" style="font-size:15px;opacity:1;margin-bottom:14px"></p>
+<p>На тест отводится <b>85 минут</b>. Таймер запускается сразу и <b>не останавливается</b>: паузы нет, вернуться позже нельзя. Если норматив истечёт, тест не закроется — вы сможете спокойно дописать, но время сверх норматива будет зафиксировано.</p>
+<ul>
+<li>Шпаргалка с формулами открыта всё время — пользуйтесь свободно, это не списывание</li>
+<li>Калькулятор разрешён</li>
+<li>Искать ответы на стороне не нужно: половина блоков не имеет правильных ответов</li>
+<li>Уходы со страницы и вставка скопированного текста фиксируются</li>
+<li>Пересдачи нет — попытка одна</li>
+</ul>
+<p>Убедитесь, что вас не будут отвлекать ближайшие полтора часа.</p>
+<button id="gbtn">Начать тест</button>
+</div></div>
+
+<div class="timerbar" id="tbar"><span><span id="tlab">ОСТАЛОСЬ</span> · <b id="tval">85:00</b></span><span id="tnote" style="opacity:.7">тест не начат</span><button id="tbtn">Начать тест</button></div>
+
+<div class="wrap">
+<header class="top">
+  <div class="meta"><span>ТЕСТ ДЛЯ МЕДИАБАЕРОВ</span><span id="today"></span></div>
+  <h1>Отбор медиабаера</h1>
+  <div class="lede">Один заход, 85 минут, обратный отсчёт без пауз. Пересдачи нет. Опыт в арбитраже не требуется: всё, что нужно для расчётов, есть в шпаргалке ниже — она открыта всё время, пользуйтесь свободно. Искать ответы на стороне и спрашивать у ИИ не нужно и бессмысленно: половина блоков не имеет правильных ответов, а уходы со страницы фиксируются.</div>
+  <div class="strip"><input id="cName" placeholder="ФИО кандидата"><input id="cSrc" placeholder="Источник / рекрутер"></div>
+
+  <details class="cheat" open>
+    <summary>Шпаргалка: метрики и формулы</summary>
+    <div class="body"><div class="gl">
+      <div><b>Показ</b> — реклама один раз показалась человеку</div>
+      <div><b>Клик</b> — человек нажал на рекламу</div>
+      <div><b>CTR</b> = клики ÷ показы. Доля кликнувших</div>
+      <div><b>CPC</b> = расход ÷ клики. Цена одного клика</div>
+      <div><b>CPM</b> = расход ÷ показы × 1000. Цена тысячи показов</div>
+      <div><b>Конверсия (лид)</b> — человек оставил заявку или купил</div>
+      <div><b>CR</b> = конверсии ÷ клики. Доля дошедших до заявки</div>
+      <div><b>CPA</b> = расход ÷ конверсии. Цена одной конверсии</div>
+      <div><b>Выплата (payout)</b> — сколько нам платят за одну конверсию</div>
+      <div><b>Выручка</b> = конверсии × выплата</div>
+      <div><b>ROI</b> = (выручка − расход) ÷ расход × 100%</div>
+      <div><b>EPC</b> = выручка ÷ клики. Сколько приносит один клик</div>
+      <div><b>Охват</b> — сколько разных людей увидели рекламу</div>
+      <div><b>Частота</b> = показы ÷ охват. Сколько раз в среднем увидел один человек</div>
+      <div><b>Ребилл</b> — повторное списание по подписке</div>
+      <div><b>LTV</b> — сколько денег приносит один клиент за всё время</div>
+      <div><b>Оффер</b> — продукт, который мы рекламируем, и условия оплаты за него</div>
+      <div><b>Крео</b> — рекламный материал: картинка или видео с текстом</div>
+      <div><b>Лендинг</b> — страница, куда человек попадает после клика</div>
+      <div><b>Связка</b> — рабочее сочетание оффера, крео и лендинга, которое приносит прибыль</div>
+    </div></div>
+  </details>
+</header>
+
+<div class="sec" data-blk="num"><div class="sec-h"><span class="sec-tag">01</span><h2>Счёт</h2><span class="sec-time">12 мин</span></div>
+<div class="sec-desc">Все нужные формулы — в шпаргалке наверху, держите её открытой. Ответ вводите числом, без символов валюты и процента. Дробные — через точку. Калькулятор разрешён.</div><div id="numBox"></div></div>
+
+<div class="sec" data-blk="log"><div class="sec-h"><span class="sec-tag">02</span><h2>Логика</h2><span class="sec-time">10 мин</span></div>
+<div class="sec-desc">Один верный вариант. Пропуски не засчитываются — отвечайте наиболее вероятным.</div><div id="logBox"></div></div>
+
+<div class="sec" data-blk="tr"><div class="sec-h"><span class="sec-tag">03</span><h2>Новые правила: «Светофор»</h2><span class="sec-time">12 мин</span></div>
+<div class="sec-desc">Ниже — схема, по которой некая команда делит дневной бюджет между кампаниями. <b>Она выдумана специально для этого теста</b> и в реальности нигде не используется, так что опыт в рекламе здесь не поможет и не помешает: все в равных условиях. Проверяется одно — насколько быстро вы осваиваете новые для себя правила и насколько точно их применяете. Прочитайте и решите задачи. К правилам можно возвращаться сколько угодно.</div>
+<div class="rules"><h3>«Светофор» — как делим дневной бюджет</h3>
+<div class="sysdesc">Каждой кампании считаем «силу», по силе красим её в цвет, по цвету даём деньги.</div>
+<ol>
+<li><b>Считаем силу.</b> Умножаем конверсию на выплату и делим на цену клика. Конверсию берём долей: 2% — это 0.02. Результат округляем до одного знака после запятой.
+<div class="ex">Пример: конверсия 3%, выплата $60, клик $0.75.<br>0.03 × 60 = 1.8, затем 1.8 ÷ 0.75 = 2.4. <b>Сила = 2.4</b></div></li>
+<li><b>Штраф за назойливость.</b> Если частота больше <code>2.5</code> — люди видят рекламу слишком часто, и мы отнимаем от силы <code>0.4</code>. Отнимаем сразу, до покраски в цвет.</li>
+<li><b>Красим.</b> Сила <code>2.0</code> и выше — <b>зелёная</b>. От <code>1.0</code> до <code>1.9</code> — <b>жёлтая</b>. Меньше <code>1.0</code> — <b>красная</b>.</li>
+<li><b>Делим деньги.</b> Зелёным — <code>60%</code> дневного бюджета, жёлтым — <code>30%</code>, красным — <code>10%</code>. Внутри одного цвета кампании делят свою часть поровну.</li>
+<li><b>Особый случай.</b> Если зелёных кампаний меньше двух, красным не даём ничего, а их <code>10%</code> отдаём жёлтым.</li>
+<li><b>Выключение.</b> Кампания, которая два дня подряд была красной, выключается совсем.</li>
+</ol></div>
+<div id="trBox"></div></div>
+
+<div class="sec" data-blk="am"><div class="sec-h"><span class="sec-tag">04</span><h2>«Светофор» изменился</h2><span class="sec-time">8 мин</span></div>
+<div class="sec-desc">В «Светофор» внесли правки. Дальше решаем по новой версии. Всё, что не упомянуто ниже, работает как раньше.</div>
+<div class="rules amend"><h3>Что поменялось</h3>
+<div class="sysdesc">Четыре изменения. Одно из старых правил отменено полностью.</div>
+<ol>
+<li><b>Штраф стал двойным.</b> Частота больше <code>2.5</code> — отнимаем <code>0.4</code>, как раньше. Но если частота больше <code>3.5</code> — отнимаем <code>0.9</code>. Два штрафа сразу не применяем: берём только один, тот что больше.</li>
+<li><b>Появился синий цвет.</b> Сила <code>3.5</code> и выше — теперь <b>синяя</b>, это лучше зелёного. Деньги делим так: синим <code>40%</code>, зелёным <code>35%</code>, жёлтым <code>20%</code>, красным <code>5%</code>.</li>
+<li><b>Если синих нет</b> ни одной — все их <code>40%</code> отдаём зелёным.</li>
+<li><b>Правило про «два дня подряд красная» отменяется.</b> Теперь выключаем кампанию сразу, как только её сила стала меньше <code>0.5</code>.</li>
+</ol></div>
+<div id="amBox"></div></div>
+
+<div class="sec" data-blk="sig"><div class="sec-h"><span class="sec-tag">05</span><h2>Решения на неполных данных</h2><span class="sec-time">8 мин</span></div>
+<div class="sec-desc">Задач на скорость нет. Проверяется, отличаете ли вы настоящий сигнал от случайности.</div><div id="sigBox"></div></div>
+
+<div class="sec" data-blk="gen"><div class="sec-h"><span class="sec-tag">06</span><h2>Генерация хуков</h2><span class="sec-time">12 мин</span></div>
+<div class="sec-desc">Опыта в рекламе тут не нужно — нужна фантазия и понимание того, что заставляет человека остановиться.</div>
+<div class="brief"><h3>Как устроена схема</h3>
+<dl>
+<dt>ШАГ 1</dt><dd><b>Объявление.</b> Картинка, оформленная как новость или скриншот публикации. На ней короткая фраза — <b>хук</b>. Его единственная задача: чтобы человек подумал «стоп, а что там произошло?» и нажал. Хук ничего не продаёт и не хвалит продукт, он только создаёт вопрос.</dd>
+<dt>ШАГ 2</dt><dd><b>Страница.</b> Человек попадает на страницу, похожую на статью. Первая часть раскрывает ту самую историю из объявления — он получает начало ответа и втягивается.</dd>
+<dt>ШАГ 3</dt><dd><b>Обрыв.</b> На самом интересном месте история прерывается. Что-то помешало досказать.</dd>
+<dt>ШАГ 4</dt><dd><b>Разворот.</b> Появляется третье лицо — журналист, который тоже это видел, зацепился и начал разбираться сам.</dd>
+<dt>ШАГ 5</dt><dd><b>Финал.</b> В ходе разбирательства всплывает платформа для инвестиций. Подана не как реклама, а как то, до чего журналист докопался.</dd>
+</dl>
+<p style="margin:12px 0 0;font-size:14px">Вся схема держится на <b>первом шаге</b>. Если хук не заставил спросить «что случилось?» — дальше человек не пойдёт, и остальные четыре шага не имеют значения.</p></div>
+<div class="sec-desc" style="margin-top:-6px">Придумайте до <b>12 хуков</b> под эту схему, по одному в строку. Три условия:<br>
+— хук создаёт <b>вопрос</b>, а не обещание. «Заработайте на инвестициях» — не хук. «Он положил трубку на середине фразы» — хук;<br>
+— <b>реальные люди не используются</b>: никаких существующих политиков, артистов, бизнесменов и выдуманных событий про них. Только вымышленные герои и обобщённые ситуации;<br>
+— хуки должны быть <b>разными по устройству</b>, а не двенадцатью формулировками одной мысли.</div>
+<div class="item"><div id="genBox"></div></div></div>
+
+<div class="sec" data-blk="ad"><div class="sec-h"><span class="sec-tag">07</span><h2>Работа с чужим опытом</h2><span class="sec-time">8 мин</span></div>
+<div class="sec-desc">Существуют сервисы, где видно, какую рекламу прямо сейчас крутят другие медиабаеры: какие креативы и тексты они используют. Их называют <b>спай-сервисами</b>. Ниже несколько ситуаций, связанных с работой с чужими наработками.</div>
+<div id="adMcBox"></div></div>
+
+<div class="sec" data-blk="mt"><div class="sec-h"><span class="sec-tag">08</span><h2>Что вас мотивирует</h2><span class="sec-time">12 мин</span></div>
+<div class="sec-desc">В каждом блоке пять утверждений. Расставьте им места: <b>5</b> — точно про меня, <b>4</b> — скорее про меня, <b>3</b> — среднее, <b>2</b> — скорее не про меня, <b>1</b> — совсем не про меня. Каждое число используется в блоке ровно один раз: поставить всем пятёрки нельзя. Отвечайте первым импульсом.</div><div id="mtBox"></div></div>
+
+<div class="sec" data-blk="st"><div class="sec-h"><span class="sec-tag">09</span><h2>Что вас держит в работе</h2><span class="sec-time">5 мин</span></div>
+<div class="sec-desc">Те же правила, но утверждений три и мест тоже три: <b>3</b> — точно про меня, <b>2</b> — среднее, <b>1</b> — совсем не про меня. Каждое число используется в блоке один раз.</div><div id="stBox"></div></div>
+
+<div class="sec" data-blk="asq"><div class="sec-h"><span class="sec-tag">10</span><h2>Разбор неудач</h2><span class="sec-time">10 мин</span></div>
+<div class="sec-desc">Шесть ситуаций, которые уже произошли. Сначала впишите главную причину своими словами, одной строкой. Затем оцените эту причину по трём шкалам. Правильных ответов нет — отвечайте так, как думаете на самом деле.</div><div id="asqBox"></div></div>
+
+<div class="sec" data-blk="oc"><div class="sec-h"><span class="sec-tag">11</span><h2>Инструменты</h2><span class="sec-time">5 мин</span></div>
+<div class="sec-desc">Отметьте, насколько знакомы: <b>0</b> — впервые слышу · <b>1</b> — слышал название · <b>2</b> — понимаю, для чего он · <b>3</b> — работал руками. Если вы новичок и почти везде поставите ноль — это нормальный и ожидаемый ответ.</div>
+<div class="item"><div id="ocBox"></div></div></div>
+
+<div class="sec" data-blk="op"><div class="sec-h"><span class="sec-tag">12</span><h2>Открытые ответы</h2><span class="sec-time">8 мин</span></div>
+<div class="sec-desc">Коротко и по делу — объём не улучшает оценку.</div><div id="opBox"></div></div>
+
+<div class="submit-zone"><button class="go" id="go">Рассчитать протокол</button><span class="hint">// незаполненные блоки будут указаны</span></div>
+<div id="out"></div>
+<footer><span>тест для медиабаеров</span><span>практическая проба проводится отдельно</span></footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============ ПОДКЛЮЧЕНИЕ ============ */
+const SB_URL='https://ebyrccbbpzdfwdfgpysd.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVieXJjY2JicHpkZndkZmdweXNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3MTM4NTcsImV4cCI6MjEwMjI4OTg1N30.kEQvX6kV-FwwRLG653AyyMnaUflLjsO2Bn-20vw72fQ';
+const TOKEN=new URLSearchParams(location.search).get('t');
+const PREVIEW=!TOKEN;                       // без токена — режим просмотра, ничего не пишется
+let sb=null;
+try{ if(window.supabase) sb=window.supabase.createClient(SB_URL,SB_KEY); }catch(e){ console.warn(e); }
+
+/* ============ DATA ============ */
+const NUM=[
+ {q:'CPC = <code>$0.40</code>, CTR = <code>2%</code>. Чему равен CPM?',u:'$'},
+ {q:'Потрачено <code>$1200</code>, получено <code>30</code> конверсий, выплата <code>$65</code>. Чему равен ROI?',u:'%'},
+ {q:'<code>5000</code> кликов, CR <code>3%</code>, выплата <code>$40</code>, CPC <code>$0.90</code>. Чистая прибыль?',u:'$'},
+ {q:'Выплата <code>$55</code>, бюджет <code>$3000</code>, нужен ROI <code>40%</code>. Максимальный допустимый CPA?',u:'$'},
+ {q:'CR <code>2.5%</code>, выплата <code>$50</code>. При каком CPC мы выходим ровно в ноль?',u:'$'},
+ {q:'<code>2000</code> кликов принесли <code>$1600</code> выручки. Чему равен EPC?',u:'$'},
+ {q:'CPA упал на <code>20%</code>, затем вырос на <code>25%</code>. На сколько процентов он отличается от исходного?',u:'%'},
+ {q:'Бюджет <code>$200</code> в день, CPA <code>$28</code>, льём <code>7</code> дней. Сколько будет лидов?',u:'шт'},
+ {q:'Охват <code>90 000</code>, частота <code>1.8</code>. Сколько было показов?',u:'шт'},
+ {q:'Первый платёж <code>$49</code>, потом три ребилла по <code>$39</code>. До каждого следующего доходит <code>40%</code> оставшихся. Чему равен LTV?',u:'$'},
+ {q:'CPA вырос с <code>$30</code> до <code>$39</code>. На сколько процентов надо поднять CR, чтобы вернуть CPA к <code>$30</code>?',u:'%'},
+ {q:'Три источника дали <code>120</code>, <code>85</code> и <code>45</code> конверсий. Средний CPA — <code>$32</code>. Сколько всего потрачено?',u:'$'}];
+const LOG=[
+ {q:'2, 6, 12, 20, 30, ?',o:['40','42','44','36']},
+ {q:'3, 7, 15, 31, 63, ?',o:['95','111','127','131']},
+ {q:'5, 10, 9, 18, 17, ?',o:['34','26','33','35']},
+ {q:'1, 2, 6, 24, 120, ?',o:['240','600','720','840']},
+ {q:'243, 81, 27, 9, ?',o:['1','3','6','0']},
+ {q:'Все прибыльные связки прошли модерацию. Некоторые кампании модерацию не прошли. Что следует строго?',o:['Некоторые кампании убыточны','Все непрошедшие кампании убыточны','Некоторые не прошедшие модерацию кампании не являются прибыльными связками','Ничего из перечисленного']},
+ {q:'Половина крео проходит модерацию. Треть прошедших даёт конверсии. Сколько крео отправить, чтобы получить 4 конвертящих?',o:['12','18','24','36']},
+ {q:'Рост частоты всегда снижает CTR, а снижение CTR всегда поднимает CPC. Что верно?',o:['Рост частоты поднимает CPC','Рост CPC поднимает частоту','Снижение частоты снижает CPC','Не связаны']},
+ {q:'A больше B. C меньше B. D больше A. Кто наименьший?',o:['A','B','C','Определить нельзя']},
+ {q:'Лишнее: показ, клик, конверсия, ребилл, крео',o:['показ','конверсия','ребилл','крео']}];
+const TR=[
+ {q:'Конверсия <code>3%</code>, выплата <code>$60</code>, клик <code>$0.75</code>, частота <code>1.4</code>. Чему равна сила?',t:'n'},
+ {q:'Конверсия <code>2%</code>, выплата <code>$70</code>, клик <code>$0.60</code>, частота <code>2.9</code>. Какой цвет?',t:'m',o:['Зелёный','Жёлтый','Красный','Данных не хватает']},
+ {q:'Бюджет <code>$5000</code>. Зелёных три кампании, жёлтых две, красная одна. Сколько получит одна зелёная?',t:'n'},
+ {q:'Бюджет <code>$4000</code>. Зелёная одна, жёлтых две, красных три. Сколько получит одна жёлтая?',t:'n'},
+ {q:'Кампания была красной, на следующий день жёлтой, потом снова красной. Что с ней на четвёртый день?',t:'m',o:['Выключается совсем','Остаётся красной и получает свою долю','Становится жёлтой','Выключается на день, потом возвращается']},
+ {q:'Все шесть кампаний оказались красными. Что говорят правила?',t:'m',o:['Бюджет делится поровну на шестерых','Красным не даём ничего — зелёных меньше двух','Получают свои 10%, остальное не тратим','Все шесть сразу выключаются']},
+ {q:'У двух кампаний сила <code>2.3</code>. У первой частота <code>2.4</code>, у второй <code>2.6</code>. Один ли у них цвет?',t:'m',o:['Да, обе зелёные','Нет: первая зелёная, вторая жёлтая','Нет: первая зелёная, вторая красная','Да, обе жёлтые']},
+ {q:'Жёлтая кампания, сила <code>1.8</code>, частота <code>1.2</code>. Цена клика выросла вдвое, остальное не изменилось. Что дальше?',t:'m',o:['Останется жёлтой','Станет красной','Станет зелёной','Сразу выключится']}];
+const AM=[
+ {q:'Конверсия <code>4%</code>, выплата <code>$80</code>, клик <code>$0.80</code>, частота <code>3.8</code>. Чему равна сила после штрафа?',t:'n'},
+ {q:'Бюджет <code>$10 000</code>. Синих нет ни одной, зелёных две, жёлтых три, красная одна. Сколько получит одна зелёная?',t:'n'},
+ {q:'Кампания третий день подряд красная, её сила <code>0.8</code>. Что с ней происходит?',t:'m',o:['Выключается — три дня подряд красная','Выключается по правилу двух дней','Продолжает работать и получает свою долю','Принудительно становится жёлтой']},
+ {q:'Сила кампании <code>4.2</code>, частота <code>4.0</code>. Какой у неё цвет?',t:'m',o:['Синий','Зелёный','Жёлтый','Красный']}];
+const SIG=[
+ {q:'Крео A: <code>14</code> кликов, <code>3</code> конверсии. Крео B: <code>600</code> кликов, <code>21</code> конверсия. Что корректнее?',o:['Лить всё на A — конверсия в разы выше','Отключить B — конверсия низкая','Продолжить тест A, решения по нему пока не принимать','Перелить весь бюджет с B на A']},
+ {q:'За 4 дня потрачено <code>$900</code>, конверсий <code>0</code>, цель по CPA <code>$35</code>. Действие?',o:['Ждём неделю, алгоритм обучается','Останавливаем и разбираем, где рвётся воронка','Удваиваем бюджет, чтобы быстрее набрать данные','Меняем гео на том же крео']},
+ {q:'Из 30 крео одно дало ROI 180%. Что это вероятнее всего?',o:['Найден универсальный подход, копируем формат','Возможна случайность, нужна проверка на повторе','Остальные 29 сделаны плохо','Аудитория выгорела на остальных']},
+ {q:'Поменяли одновременно крео, лендинг и гео. CPA упал вдвое. Что вы узнали?',o:['Что новая связка лучше старой','Что дело в лендинге','Ничего о причине — непонятно, что именно сработало','Что старое гео было выжжено']},
+ {q:'Крео A: <code>40</code> кликов, <code>2</code> заявки. Крео B: <code>45</code> кликов, <code>1</code> заявка. Что можно сказать?',o:['A работает вдвое лучше, чем B','На таких числах разница ничего не значит, данных пока мало','B надо отключить прямо сейчас','Оба крео плохие, менять нужно оба']},
+ {q:'В первые два часа после запуска цена заявки оказалась вдвое ниже целевой. Ваши действия?',o:['Сразу поднять бюджет в несколько раз, пока идёт хорошо','Дождаться, пока накопится достаточно заявок, и только потом решать','Сразу остановить: так хорошо не бывает, где-то ошибка','Ничего не менять и больше в кампанию не заходить']}];
+const ADMC=[
+ {q:'В спай-сервисе вы нашли объявление, у которого десятки копий от разных медиабаеров. Ваши действия?',o:['Запустить точно такое же, раз столько людей его копируют','Разобрать, за счёт чего оно цепляет, и собрать свою версию под своё гео','Пройти мимо: раз столько копий, аудитория уже выжжена','Не смотреть чужое вообще — нужна своя оригинальная идея']},
+ {q:'Связка хорошо работала на Канаду, вы переносите её на Австралию. Оффер тот же. Что менять в первую очередь, а что оставить?',o:['Оставить всё как есть — язык тот же','Оставить историю и структуру, поменять локальные детали и лицо на местное','Поменять историю целиком, оставить только формат','Оставить всё как есть, но запускаться с меньшим бюджетом']},
+ {q:'Вы разбираете чужое объявление, чтобы сделать на его основе своё. Что важнее всего понять в первую очередь?',o:['Какие шрифты и цвета в нём использованы','Почему человек верит тому, что ему показывают','Сколько дней это объявление уже крутится','Кто именно снят в ролике']},
+ {q:'Вы заходите на новое для себя гео, в спай-сервисе по нему почти пусто. Как начать?',o:['Придумывать с нуля, других вариантов нет','Взять то, что работает на похожих гео, и адаптировать под местные особенности','Подождать, пока кто-то начнёт, и скопировать','Запустить сразу 50 случайных вариантов и смотреть']},
+ {q:'Два новичка. Первый за месяц сделал 4 полностью оригинальных крео, каждое придумывал с нуля. Второй взял одну рабочую чужую схему и сделал 30 её вариантов. У кого выше шанс найти прибыльную связку?',o:['У первого — оригинальность ценится алгоритмом','У второго — больше попыток вокруг того, что уже доказано','Шансы равны','У первого, потому что рынок не выносит копий']}];
+const MT=[
+ ['Работа, где доход прямо зависит от того, сколько я принёс|d','Проект, о котором приятно рассказать в своём кругу|s','Задача, которую до меня никто не решил|z','Уверенность, что через полгода всё будет стабильно|b','Работа, от которой я получаю удовольствие в процессе|r'],
+ ['Премию хочу деньгами и без условий|d','Премию хочу так, чтобы об этом объявили при всех|s','Вместо премии дайте более сложный проект|z','Премия хороша, но стабильная часть важнее|b','Лучше свободы и интересных задач, чем премия|r'],
+ ['Бесит, когда платят меньше, чем я стою на рынке|d','Бесит, когда снижают мой уровень влияния|s','Бесит, когда нет измеримой цели, к которой идёшь|z','Бесит непредсказуемость и постоянные форс-мажоры|b','Бесит, когда работа перестала быть интересной|r'],
+ ['Слил бюджет — считаю, сколько потеряно и как отбить|d','Слил бюджет — думаю, как это выглядит со стороны|s','Слил бюджет — разбираю, что именно я сделал не так|z','Слил бюджет — ищу, где был перерасход|b','Слил бюджет — переживаю, но быстро переключаюсь на новую идею|r'],
+ ['Руководитель должен платить выше рынка за результат|d','Руководитель должен быть авторитетом с именем|s','Руководитель должен ставить высокую планку и не мешать|z','Руководитель должен быть предсказуемым и чётким|b','Руководитель должен зажигать и давать свободу|r'],
+ ['Останусь сверхурочно, если доплатят|d','Останусь, если это заметят и оценят|s','Останусь, если задача того требует и я её дожму|z','Останусь, если это часть согласованного плана|b','Останусь, если мне интересно то, чем занят|r'],
+ ['Выберу работу, где выше деньги|d','Выберу работу, где солиднее компания|s','Выберу работу, где сложнее задача и больше полномочий|z','Выберу работу, где надёжнее условия|b','Выберу работу, где интереснее и живее команда|r'],
+ ['Учусь новому, чтобы зарабатывать больше|d','Учусь новому, чтобы быть в числе лучших|s','Учусь новому, чтобы брать задачи, которые раньше не мог|z','Учусь новому, чтобы не выпасть с рынка|b','Учусь новому просто потому, что затягивает|r'],
+ ['Люблю, когда мой вклад можно посчитать в деньгах|d','Люблю, когда мои результаты видят другие|s','Люблю доводить трудное до конца и говорить «я это сделал»|z','Люблю, когда всё продумано и ничего не горит|b','Люблю, когда работа не похожа на вчерашнюю|r'],
+ ['Рискну деньгами, если возможная прибыль того стоит|d','Рискну, если победа заметно поднимет мой вес|s','Рискну, если вижу, что цифры сходятся|z','Не рискну, пока не подстрахуюсь|b','Рискну, потому что интересно, что получится|r'],
+ ['Успех через год — доход вырос в разы|d','Успех через год — меня знают в профессии|s','Успех через год — я взял цель, которая казалась недостижимой|z','Успех через год — стабильная позиция без потрясений|b','Успех через год — я занят тем, от чего горю|r'],
+ ['Легко ухожу туда, где предложат больше|d','Ухожу, если перестал расти в статусе|s','Ухожу, когда цели закончились и брать стало нечего|z','Тяжело меняю работу, привыкаю к людям и порядку|b','Ухожу, когда стало скучно|r']];
+const ST=[
+ ['Больше всего затягивает сам процесс: копаться, крутить, пробовать|p','Больше всего держит смысл того, что мы делаем|i','Больше всего держат люди рядом и атмосфера|k'],
+ ['Могу залипнуть в задачу на полдня, потому что интересно её крутить|p','Не смогу долго делать то, что считаю бессмысленным|i','Тяжело работаю там, где холодные отношения, даже если задача хорошая|k'],
+ ['Если процесс скучный, я выгораю, каким бы важным он ни был|p','Если продукт мне не нравится по сути, я не смогу его продвигать|i','Если команда развалилась, я уйду, даже когда всё остальное устраивает|k'],
+ ['Мне важно, чтобы было что покрутить и чем поэкспериментировать|p','Мне важно, чтобы то, что я делаю, приносило людям пользу|i','Мне важно чувствовать себя частью своих|k'],
+ ['Люблю осваивать новые инструменты ради самого освоения|p','Хочу, чтобы моя работа во что-то большее складывалась|i','Лучше работаю, когда рядом люди, которых уважаю|k'],
+ ['Меня заводит, когда нащупал рабочий подход и раскручиваешь его|p','Меня заводит, когда за продуктом стоит правильная идея|i','Меня заводит общий драйв команды|k']];
+const ASQ=['Кампания потратила $1500 и не дала ни одной заявки.','Рекламный аккаунт заблокировали на второй день после запуска.','Из двадцати сделанных вами объявлений не выстрелило ни одно.','Реклама, которая месяц приносила прибыль, резко перестала работать.','Руководитель раскритиковал вашу работу при команде.','Вы не выполнили месячный план.'];
+const OC=[
+ {c:'Трекеры и аналитика'},
+ {n:'Keitaro'},{n:'Binom'},{n:'Voluum'},{n:'RedTrack'},{n:'Konverso Attribution'},
+ {c:'Спай-сервисы'},
+ {n:'AdHeart'},{n:'AdSpy'},{n:'Adplexity'},{n:'BigSpy'},{n:'Anstrex'},{n:'Facebook Ad Library'},{n:'SpyNova Ads'},{n:'Trafflow Spy'},
+ {c:'Антидетект-браузеры'},
+ {n:'Dolphin Anty'},{n:'AdsPower'},{n:'GoLogin'},{n:'Octo Browser'},{n:'Multilogin'},{n:'Cloakvex Browser'},
+ {c:'Реклама и передача данных'},
+ {n:'Meta Ads Manager'},{n:'Facebook CAPI'},{n:'Google Tag Manager'},{n:'Pixelgrid Sync'},
+ {c:'Крео и лендинги'},
+ {n:'CapCut'},{n:'Canva'},{n:'Figma'},{n:'Tilda'},
+ {c:'Автоматизация'},
+ {n:'Make.com'},{n:'Zapier'}];
+const OPEN=['Опишите самую длинную серию неудач подряд в вашей работе или учёбе. Сколько было попыток, что вы поменяли после пятой, чем всё закончилось.','Дело идёт хорошо и приносит стабильный небольшой доход. Можно оставить как есть, а можно рискнуть и вложить больше — с шансом потерять, но и заработать заметно больше. Что выберете и почему?'];
+
+
+/* ============ RENDER ============ */
+const $=id=>document.getElementById(id);
+NUM.forEach((it,i)=>{const d=document.createElement('div');d.className='item';
+ d.innerHTML=`<div class="item-n">1.${i+1}</div><div class="q">${it.q}</div><input class="num" type="text" inputmode="decimal" id="n${i}" placeholder="—"><span class="unit">${it.u}</span>`;$('numBox').appendChild(d);});
+function mc(box,arr,pfx,sn){arr.forEach((it,i)=>{const d=document.createElement('div');d.className='item';
+ let h=`<div class="item-n">${sn}.${i+1}</div><div class="q">${it.q}</div><div class="opts">`;
+ it.o.forEach((o,j)=>h+=`<label class="opt"><input type="radio" name="${pfx}${i}" value="${j}"><span>${o}</span></label>`);
+ d.innerHTML=h+'</div>';box.appendChild(d);});}
+mc($('logBox'),LOG,'l',2);mc($('sigBox'),SIG,'g',5);mc($('adMcBox'),ADMC,'d',7);
+function mixed(box,arr,pfx,sn){arr.forEach((it,i)=>{const d=document.createElement('div');d.className='item';
+ let h=`<div class="item-n">${sn}.${i+1}</div><div class="q">${it.q}</div>`;
+ if(it.t==='n')h+=`<input class="num" type="text" inputmode="decimal" id="${pfx}${i}" placeholder="—">`;
+ else{h+='<div class="opts">';it.o.forEach((o,j)=>h+=`<label class="opt"><input type="radio" name="${pfx}${i}" value="${j}"><span>${o}</span></label>`);h+='</div>';}
+ d.innerHTML=h;box.appendChild(d);});}
+mixed($('trBox'),TR,'t',3);mixed($('amBox'),AM,'a',4);
+for(let i=0;i<12;i++){const r=document.createElement('div');r.className='gen-row';
+ r.innerHTML=`<span class="gen-i">${String(i+1).padStart(2,'0')}</span><input type="text" id="gen${i}" placeholder="${i<2?'короткая фраза, создающая вопрос…':''}">`;$('genBox').appendChild(r);}
+function ranking(box,data,pfx,mx,sn){data.forEach((bl,bi)=>{const d=document.createElement('div');d.className='item';
+ let h=`<div class="item-n">${sn}.${bi+1}</div>`;
+ bl.forEach((s,si)=>{const[txt,key]=s.split('|');let o='<option value="">—</option>';
+  for(let v=mx;v>=1;v--)o+=`<option value="${v}">${v}</option>`;
+  h+=`<div class="rank-row"><div class="rank-txt">${txt}</div><select class="rk" id="rk-${pfx}${bi}-${si}" data-b="${pfx}${bi}" data-k="${key}">${o}</select></div>`;});
+ h+=`<div class="rk-flag" id="f-${pfx}${bi}"></div>`;d.innerHTML=h;box.appendChild(d);});}
+ranking($('mtBox'),MT,'m',5,8);ranking($('stBox'),ST,'s',3,9);
+document.addEventListener('change',e=>{if(!e.target.classList.contains('rk'))return;
+ const b=e.target.dataset.b,sel=[...document.querySelectorAll(`select[data-b="${b}"]`)];
+ const v=sel.map(s=>s.value).filter(x=>x),dup=new Set(v.filter((x,i)=>v.indexOf(x)!==i));
+ sel.forEach(s=>s.classList.toggle('dup',s.value&&dup.has(s.value)));
+ $('f-'+b).textContent=dup.size?'⚠ места повторяются — каждое число используется один раз':'';});
+const DIMS=[{k:'int',q:'Насколько причина связана лично с вами, а не с обстоятельствами?',l:'полностью обстоятельства',r:'полностью я'},
+ {k:'stb',q:'Эта причина будет действовать и дальше?',l:'разовая, больше не повторится',r:'будет действовать всегда'},
+ {k:'glb',q:'Эта причина влияет только на эту ситуацию или на всю вашу работу?',l:'только на эту ситуацию',r:'на всё, что я делаю'}];
+ASQ.forEach((sc,i)=>{const d=document.createElement('div');d.className='item';
+ let h=`<div class="item-n">10.${i+1}</div><div class="asq-scen">${sc}</div><div class="asq-cause"><input type="text" id="ac${i}" placeholder="Главная причина, одной строкой…"></div>`;
+ DIMS.forEach(dm=>{let s='';for(let v=1;v<=5;v++)s+=`<label><input type="radio" name="${dm.k}${i}" value="${v}"><span>${v}</span></label>`;
+  h+=`<div class="asq-dim"><div class="asq-q">${dm.q}</div><div class="scale"><span class="cap">${dm.l}</span>${s}<span class="cap">${dm.r}</span></div></div>`;});
+ d.innerHTML=h;$('asqBox').appendChild(d);});
+let ocIdx=0;const OCI=[];
+OC.forEach(it=>{if(it.c){const c=document.createElement('div');c.className='oc-cat';c.textContent=it.c;$('ocBox').appendChild(c);return;}
+ const i=ocIdx++;OCI.push(it);const r=document.createElement('div');r.className='oc-row';
+ let s='<div class="oc-scale">';for(let v=0;v<=3;v++)s+=`<label><input type="radio" name="o${i}" value="${v}"><span>${v}</span></label>`;
+ r.innerHTML=`<div class="oc-name">${it.n}</div>${s}</div>`;$('ocBox').appendChild(r);});
+OPEN.forEach((q,i)=>{const d=document.createElement('div');d.className='item';
+ d.innerHTML=`<div class="item-n">12.${i+1}</div><div class="q">${q}</div><textarea id="op${i}" placeholder="Ответ…"></textarea>`;$('opBox').appendChild(d);});
+$('today').textContent=new Date().toLocaleDateString('ru-RU');
+
+/* ============ TELEMETRY ============ */
+const BT={};let away=0,awayMs=0,leftAt=0,pastes=0,bursts=0;
+document.querySelectorAll('.sec[data-blk]').forEach(sec=>{const k=sec.dataset.blk;
+ const mark=()=>{const t=Date.now();if(!BT[k])BT[k]={s:t,e:t};BT[k].e=t;};
+ sec.addEventListener('input',mark);sec.addEventListener('change',mark);});
+const span=k=>BT[k]?Math.round((BT[k].e-BT[k].s)/60000*10)/10:null;
+document.addEventListener('visibilitychange',()=>{if(document.hidden){away++;leftAt=Date.now();}
+ else if(leftAt){awayMs+=Date.now()-leftAt;leftAt=0;}});
+window.addEventListener('blur',()=>{if(!document.hidden)leftAt=leftAt||Date.now();});
+window.addEventListener('focus',()=>{if(leftAt&&!document.hidden){awayMs+=Date.now()-leftAt;leftAt=0;}});
+document.addEventListener('paste',e=>{const t=e.target;
+ if(t.tagName==='INPUT'||t.tagName==='TEXTAREA'){e.preventDefault();pastes++;}},true);
+const lastLen={};
+document.addEventListener('input',e=>{const t=e.target;if(!t.id)return;
+ const p=lastLen[t.id]||0,n=(t.value||'').length;if(n-p>25)bursts++;lastLen[t.id]=n;},true);
+
+/* ============ TIMER ============ */
+const LIMIT=85*60;
+let endAt=null,tick=null,started=false,usedSec=0,overSec=0;
+function fmt(s){s=Math.max(0,s);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+async function startTest(){
+ if(started)return;started=true;
+ document.body.classList.remove('locked');
+ const g=$('gate');if(g)g.remove();
+ $('tbtn').disabled=true;$('tbtn').textContent='идёт';
+ let left=LIMIT;
+ if(!PREVIEW&&sb){
+  try{
+   if(pendingLeft!==null){ left=pendingLeft; }
+   else{ const {data}=await sb.rpc('start_test',{p_token:TOKEN}); if(data&&data.left_sec!=null)left=data.left_sec; }
+  }catch(e){console.warn('start',e);}
+  beginAutosave();
+ }
+ endAt=Date.now()+left*1000;
+ const bar=$('tbar');
+ tick=setInterval(()=>{
+  const left=Math.round((endAt-Date.now())/1000);
+  usedSec=LIMIT-left;
+  if(left>0){
+   $('tlab').textContent='ОСТАЛОСЬ';
+   $('tval').textContent=fmt(left);
+   $('tnote').textContent=left>600?'паузы нет':'время заканчивается';
+   bar.classList.toggle('warn',left<=600&&left>300);
+   bar.classList.toggle('over',left<=300);
+  } else {
+   overSec=-left;
+   $('tlab').textContent='ПРЕВЫШЕНИЕ';
+   $('tval').textContent='+'+fmt(overSec);
+   $('tnote').textContent='норматив истёк, можно продолжать';
+   bar.classList.remove('warn');bar.classList.add('over');
+  }
+ },1000);
+}
+$('tbtn').addEventListener('click',()=>startTest());
+const gb=$('gbtn');if(gb)gb.addEventListener('click',()=>startTest());
+
+/* ============ СОХРАНЕНИЕ И ВОССТАНОВЛЕНИЕ ============ */
+function collectState(){
+ const st={t:{},r:{},a:{}};
+ document.querySelectorAll('input[type=text]').forEach(e=>{if(e.id&&e.value)st.t[e.id]=e.value;});
+ document.querySelectorAll('textarea').forEach(e=>{if(e.id&&e.value)st.t[e.id]=e.value;});
+ document.querySelectorAll('input[type=radio]:checked').forEach(e=>{st.r[e.name]=e.value;});
+ document.querySelectorAll('select.rk').forEach(e=>{if(e.id&&e.value)st.a[e.id]=e.value;});
+ return st;
+}
+function restoreState(st){
+ if(!st)return;
+ Object.entries(st.t||{}).forEach(([k,v])=>{const e=$(k);if(e)e.value=v;});
+ Object.entries(st.r||{}).forEach(([n,v])=>{const e=document.querySelector(`input[name="${n}"][value="${v}"]`);if(e)e.checked=true;});
+ Object.entries(st.a||{}).forEach(([k,v])=>{const e=$(k);if(e)e.value=v;});
+}
+let saveTimer=null,lastSaved='';
+function beginAutosave(){
+ if(PREVIEW||!sb||saveTimer)return;
+ saveTimer=setInterval(async()=>{
+  try{
+   const st=JSON.stringify(collectState());
+   if(st===lastSaved)return;
+   await sb.rpc('save_progress',{p_token:TOKEN,p_state:JSON.parse(st)});
+   lastSaved=st;
+  }catch(e){console.warn('autosave',e);}
+ },20000);
+}
+
+/* ============ ЗАПУСК ============ */
+function showOverlay(id){const e=$(id);if(e)e.style.display='flex';}
+function isMobile(){return window.matchMedia('(max-width: 900px)').matches||/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);}
+
+async function boot(){
+ if(isMobile()){showOverlay('mobile');return;}
+ if(PREVIEW){
+  $('who').textContent='Режим просмотра: результаты не сохраняются.';
+  return;
+ }
+ if(!sb){$('lerr-t').textContent='Не удалось подключиться';$('lerr-b').textContent='Проверьте интернет и обновите страницу.';showOverlay('linkerr');return;}
+ try{
+  const {data,error}=await sb.rpc('open_test',{p_token:TOKEN});
+  if(error)throw error;
+  if(!data||!data.ok){
+   if(data&&data.reason==='already_finished'){
+    $('lerr-t').textContent='Тест уже пройден';
+    $('lerr-b').textContent='Эта ссылка одноразовая и больше не открывается. Результат отправлен рекрутеру.';
+   }
+   showOverlay('linkerr');return;
+  }
+  $('who').textContent=data.candidate_name?('Кандидат: '+data.candidate_name):'';
+  restoreState(data.state);
+  if(data.started){
+   $('gbtn').textContent='Продолжить';
+   pendingLeft=data.left_sec;
+  }
+ }catch(e){
+  console.warn(e);
+  $('lerr-t').textContent='Не удалось открыть тест';
+  $('lerr-b').textContent='Обновите страницу. Если не помогает — напишите тому, кто прислал ссылку.';
+  showOverlay('linkerr');
+ }
+}
+let pendingLeft=null;
+boot();
+
+/* ============ SCORING ============ */
+const val=id=>{const e=$(id);return e?e.value.trim().replace(',','.').replace(/[^\d.\-]/g,''):'';};
+const rad=n=>{const e=document.querySelector(`input[name="${n}"]:checked`);return e?e.value:null;};
+
+$('go').addEventListener('click',()=>finish(false));
+
+function collectResponses(){
+ const R={num:{},log:{},tr:{},am:{},sig:{},adapt:{},tools:{},motiv:{},engage:{},asq:{},hooks:[],open:{}};
+ NUM.forEach((_,i)=>R.num['n'+i]=val('n'+i));
+ LOG.forEach((_,i)=>R.log['l'+i]=rad('l'+i));
+ TR.forEach((it,i)=>R.tr['t'+i]= it.t==='n'? val('t'+i) : rad('t'+i));
+ AM.forEach((it,i)=>R.am['a'+i]= it.t==='n'? val('a'+i) : rad('a'+i));
+ SIG.forEach((_,i)=>R.sig['g'+i]=rad('g'+i));
+ ADMC.forEach((_,i)=>R.adapt['d'+i]=rad('d'+i));
+ OCI.forEach((it,i)=>R.tools[it.n]=rad('o'+i));
+ MT.forEach((_,bi)=>document.querySelectorAll(`select[data-b="m${bi}"]`).forEach((s,si)=>R.motiv[`m${bi}-${si}`]=s.value));
+ ST.forEach((_,bi)=>document.querySelectorAll(`select[data-b="s${bi}"]`).forEach((s,si)=>R.engage[`s${bi}-${si}`]=s.value));
+ ASQ.forEach((_,i)=>{R.asq['cause'+i]=$('ac'+i).value.trim();
+   ['int','stb','glb'].forEach(d=>R.asq[d+i]=rad(d+i));});
+ for(let i=0;i<12;i++){const v=$('gen'+i).value.trim();if(v)R.hooks.push(v);}
+ OPEN.forEach((_,i)=>R.open['op'+i]=$('op'+i).value.trim());
+ return R;
+}
+
+function missing(){
+ const m=[];
+ if(NUM.some((_,i)=>val('n'+i)===''))m.push('01 счёт');
+ if(LOG.some((_,i)=>rad('l'+i)===null))m.push('02 логика');
+ if(TR.some((it,i)=>it.t==='n'?val('t'+i)==='':rad('t'+i)===null))m.push('03 светофор');
+ if(AM.some((it,i)=>it.t==='n'?val('a'+i)==='':rad('a'+i)===null))m.push('04 изменения');
+ if(SIG.some((_,i)=>rad('g'+i)===null))m.push('05 выборки');
+ let hooks=0;for(let i=0;i<12;i++)if($('gen'+i).value.trim())hooks++;
+ if(!hooks)m.push('06 хуки');
+ if(ADMC.some((_,i)=>rad('d'+i)===null))m.push('07 чужой опыт');
+ let mtBad=false;
+ MT.forEach((_,bi)=>{const s=[...document.querySelectorAll(`select[data-b="m${bi}"]`)].map(x=>x.value);
+  if(s.some(x=>!x)||new Set(s).size!==s.length)mtBad=true;});
+ if(mtBad)m.push('08 мотивация');
+ let stBad=false;
+ ST.forEach((_,bi)=>{const s=[...document.querySelectorAll(`select[data-b="s${bi}"]`)].map(x=>x.value);
+  if(s.some(x=>!x)||new Set(s).size!==s.length)stBad=true;});
+ if(stBad)m.push('09 что держит');
+ if(ASQ.some((_,i)=>!$('ac'+i).value.trim()||rad('int'+i)===null||rad('stb'+i)===null||rad('glb'+i)===null))m.push('10 разбор неудач');
+ if(OCI.some((_,i)=>rad('o'+i)===null))m.push('11 инструменты');
+ return m;
+}
+
+async function finish(force){
+ if(!started&&!force){alert('Сначала нажмите «Начать тест».');return;}
+ const m=missing();
+ if(m.length&&!force){alert('Не заполнено: '+m.join(', ')+'.');return;}
+ if(tick){clearInterval(tick);tick=null;}
+ if(saveTimer){clearInterval(saveTimer);saveTimer=null;}
+
+ if(PREVIEW||!sb){
+  alert('Режим просмотра: ответы не отправляются и баллы не считаются. Для настоящего прохождения нужна личная ссылка.');
+  return;
+ }
+ $('go').disabled=true;$('go').textContent='Отправляем…';
+ const telemetry={away,away_ms:awayMs,pastes,bursts,
+   block_times:Object.fromEntries(Object.keys(BT).map(k=>[k,span(k)]))};
+ try{
+  const {data,error}=await sb.rpc('submit_test',{
+   p_token:TOKEN, p_responses:collectResponses(), p_telemetry:telemetry,
+   p_used:usedSec, p_over:overSec});
+  if(error)throw error;
+  if(!data||!data.ok){
+   $('go').disabled=false;$('go').textContent='Рассчитать протокол';
+   alert(data&&data.reason==='already_finished'?'Этот тест уже отправлен.':'Не удалось отправить. Попробуйте ещё раз.');
+   return;
+  }
+  $('score10').textContent=data.score10;
+  $('done').style.display='flex';
+ }catch(e){
+  console.warn(e);
+  $('go').disabled=false;$('go').textContent='Рассчитать протокол';
+  alert('Не удалось отправить результат. Проверьте интернет и нажмите ещё раз — введённое сохранено.');
+ }
+}
+
+
+</script>
+</body>
+</html>
