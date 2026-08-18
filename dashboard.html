@@ -662,6 +662,32 @@ $('u-add').onclick=async()=>{
   $('u-mail').value=''; loadUsers();
 };
 
+/* ---------- новый кандидат ---------- */
+$('n-btn').onclick=async()=>{
+  $('n-err').textContent='';
+  const name=$('n-name').value.trim();
+  if(!name){$('n-err').textContent='Впишите имя кандидата.';return;}
+  const opt=$('n-source').selectedOptions[0];
+  if(opt?.dataset.d==='true'&&!$('n-detail').value.trim()){
+    $('n-err').textContent='Укажите, от кого рекомендация.';return;}
+  $('n-btn').disabled=true;$('n-btn').textContent='Создаём…';
+  const {data:c,error:e1}=await sb.from('candidates').insert({
+    full_name:name, contact:$('n-contact').value.trim()||null,
+    source_id:$('n-source').value, source_detail:$('n-detail').value.trim()||null,
+    recruiter_id:ME.id
+  }).select().single();
+  $('n-btn').disabled=false;$('n-btn').textContent='Создать и получить ссылку';
+  if(e1){$('n-err').textContent='Не удалось создать: '+e1.message;return;}
+  const {data:a,error:e2}=await sb.from('attempts').insert({candidate_id:c.id}).select().single();
+  if(e2){$('n-err').textContent='Кандидат создан, но ссылка не выпустилась: '+e2.message;return;}
+  const url=`${TEST_BASE}?t=${a.token}`;
+  $('n-url').textContent=url; $('n-link').classList.remove('hide');
+  $('n-copy').onclick=()=>{navigator.clipboard.writeText(url);
+    $('n-copy').textContent='Скопировано';setTimeout(()=>$('n-copy').textContent='Скопировать',2000)};
+  $('n-name').value='';$('n-contact').value='';$('n-detail').value='';
+  loadList();
+};
+
 /* ---------- источники ---------- */
 async function loadStats(){
   const {data,error}=await sb.from('source_stats').select('*');
