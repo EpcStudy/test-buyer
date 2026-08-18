@@ -55,6 +55,10 @@ details.cheat .body{padding:0 18px 18px;border-top:1px solid var(--line-2)}
 .sec-time{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-2);border:1px solid var(--line);padding:3px 8px;margin-left:auto;white-space:nowrap}
 .sec-desc{color:var(--ink-2);font-size:14px;margin:10px 0 26px;max-width:66ch}
 .sec-desc b{color:var(--ink)}
+.item.miss{border-color:var(--fail);background:#FFF7F6;box-shadow:0 0 0 3px rgba(163,43,34,.08)}
+.miss-note{background:var(--fail-w);color:var(--fail);border-left:3px solid var(--fail);
+ padding:12px 14px;border-radius:2px;margin-bottom:14px;font-size:14px;display:none}
+.miss-note.on{display:block}
 .item{background:var(--card);border:1px solid var(--line);border-radius:2px;padding:15px 17px;margin-bottom:11px}
 .item-n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-2);margin-bottom:8px}
 .q{font-size:14.5px;margin-bottom:11px}
@@ -303,7 +307,8 @@ footer{margin-top:70px;padding-top:16px;border-top:1px solid var(--line);font-fa
 <div class="sec" data-blk="op"><div class="sec-h"><span class="sec-tag">12</span><h2>Открытые ответы</h2><span class="sec-time">8 мин</span></div>
 <div class="sec-desc">Коротко и по делу — объём не улучшает оценку.</div><div id="opBox"></div></div>
 
-<div class="submit-zone"><button class="go" id="go">Рассчитать протокол</button><span class="hint">// незаполненные блоки будут указаны</span></div>
+<div class="miss-note" id="missNote"></div>
+<div class="submit-zone"><button class="go" id="go">Завершить тест</button><span class="hint">// незаполненное будет подсвечено</span></div>
 <div id="out"></div>
 <footer><span>тест для медиабаеров</span><span>практическая проба проводится отдельно</span></footer>
 </div>
@@ -614,16 +619,17 @@ async function startTest(){
   return;
  }
  const wz=$('cName-warn'); if(wz)wz.textContent='';
+ SELF_NAME = $('cName') ? $('cName').value.trim() : '';
  started=true;
  document.body.classList.remove('locked');
- const g=$('gate');if(g)g.remove();
+ const g=$('gate');if(g)g.style.display='none';
  $('tbtn').disabled=true;$('tbtn').textContent='идёт';
  let left=LIMIT;
  if(!PREVIEW&&sb){
   try{
    if(pendingLeft!==null){ left=pendingLeft; }
    else{ const {data}=await sb.rpc('start_test',{p_token:TOKEN}); if(data&&data.left_sec!=null)left=data.left_sec; }
-   await sb.rpc('save_self_name',{p_token:TOKEN,p_name:$('cName').value.trim()});
+   await sb.rpc('save_self_name',{p_token:TOKEN,p_name:SELF_NAME});
   }catch(e){console.warn('start',e);}
   beginAutosave();
  }
@@ -702,7 +708,7 @@ async function boot(){
   }
   $('who').textContent=data.candidate_name?('Кандидат: '+data.candidate_name):'';
   restoreState(data.state);
-  if(data.self_name)$('cName').value=data.self_name;
+  if(data.self_name){SELF_NAME=data.self_name;const cn=$('cName');if(cn)cn.value=data.self_name;}
   if(data.started){
    $('gbtn').textContent='Продолжить';
    pendingLeft=data.left_sec;
@@ -715,6 +721,7 @@ async function boot(){
  }
 }
 let pendingLeft=null;
+let SELF_NAME='';
 boot();
 
 /* ============ SCORING ============ */
@@ -738,37 +745,72 @@ function collectResponses(){
    ['int','stb','glb'].forEach(d=>R.asq[d+i]=rad(d+i));});
  for(let i=0;i<12;i++){const v=$('gen'+i).value.trim();if(v)R.hooks.push(v);}
  OPEN.forEach((_,i)=>R.open['op'+i]=$('op'+i).value.trim());
- R.self_name=$('cName').value.trim();
+ R.self_name=SELF_NAME;
  return R;
 }
 
 function missing(){
- const m=[];
- if(NUM.some((_,i)=>val('n'+i)===''))m.push('01 счёт');
- if(LOG.some((_,i)=>rad('l'+i)===null))m.push('02 логика');
- if(TR.some((it,i)=>it.t==='n'?val('t'+i)==='':rad('t'+i)===null))m.push('03 светофор');
- if(AM.some((it,i)=>it.t==='n'?val('a'+i)==='':rad('a'+i)===null))m.push('04 изменения');
- if(SIG.some((_,i)=>rad('g'+i)===null))m.push('05 выборки');
- let hooks=0;for(let i=0;i<12;i++)if($('gen'+i).value.trim())hooks++;
- if(!hooks)m.push('06 хуки');
- if(ADMC.some((_,i)=>rad('d'+i)===null))m.push('07 чужой опыт');
- let mtBad=false;
- MT.forEach((_,bi)=>{const s=[...document.querySelectorAll(`select[data-b="m${bi}"]`)].map(x=>x.value);
-  if(s.some(x=>!x)||new Set(s).size!==s.length)mtBad=true;});
- if(mtBad)m.push('08 мотивация');
- let stBad=false;
- ST.forEach((_,bi)=>{const s=[...document.querySelectorAll(`select[data-b="s${bi}"]`)].map(x=>x.value);
-  if(s.some(x=>!x)||new Set(s).size!==s.length)stBad=true;});
- if(stBad)m.push('09 что держит');
- if(ASQ.some((_,i)=>!$('ac'+i).value.trim()||rad('int'+i)===null||rad('stb'+i)===null||rad('glb'+i)===null))m.push('10 разбор неудач');
- if(OCI.some((_,i)=>rad('o'+i)===null))m.push('11 инструменты');
+ const m=[]; // {name, el}
+ const push=(name,el)=>{ if(el) m.push({name,el}); };
+ const firstRadio=n=>document.querySelector(`input[name="${n}"]`);
+
+ NUM.forEach((_,i)=>{ if(val('n'+i)==='') push('01 · счёт',$('n'+i)); });
+ LOG.forEach((_,i)=>{ if(rad('l'+i)===null) push('02 · логика',firstRadio('l'+i)); });
+ TR.forEach((it,i)=>{ const bad=it.t==='n'?val('t'+i)==='':rad('t'+i)===null;
+   if(bad) push('03 · светофор', it.t==='n'?$('t'+i):firstRadio('t'+i)); });
+ AM.forEach((it,i)=>{ const bad=it.t==='n'?val('a'+i)==='':rad('a'+i)===null;
+   if(bad) push('04 · изменения', it.t==='n'?$('a'+i):firstRadio('a'+i)); });
+ SIG.forEach((_,i)=>{ if(rad('g'+i)===null) push('05 · выборки',firstRadio('g'+i)); });
+
+ let hooks=0; for(let i=0;i<12;i++) if($('gen'+i).value.trim())hooks++;
+ if(!hooks) push('06 · хуки',$('gen0'));
+
+ ADMC.forEach((_,i)=>{ if(rad('d'+i)===null) push('07 · чужой опыт',firstRadio('d'+i)); });
+
+ MT.forEach((_,bi)=>{ const sel=[...document.querySelectorAll(`select[data-b="m${bi}"]`)];
+   const v=sel.map(x=>x.value);
+   if(v.some(x=>!x)||new Set(v).size!==v.length) push('08 · мотивация',sel[0]); });
+ ST.forEach((_,bi)=>{ const sel=[...document.querySelectorAll(`select[data-b="s${bi}"]`)];
+   const v=sel.map(x=>x.value);
+   if(v.some(x=>!x)||new Set(v).size!==v.length) push('09 · что держит',sel[0]); });
+
+ ASQ.forEach((_,i)=>{
+   if(!$('ac'+i).value.trim()) push('10 · разбор неудач',$('ac'+i));
+   else if(rad('int'+i)===null||rad('stb'+i)===null||rad('glb'+i)===null)
+     push('10 · разбор неудач',firstRadio('int'+i)); });
+
+ OCI.forEach((it,i)=>{ if(rad('o'+i)===null) push('11 · инструменты',firstRadio('o'+i)); });
+ OPEN.forEach((_,i)=>{ if(!$('op'+i).value.trim()) push('12 · открытые ответы',$('op'+i)); });
+
  return m;
+}
+
+function showMissing(m){
+ document.querySelectorAll('.item.miss').forEach(e=>e.classList.remove('miss'));
+ const items=new Set();
+ m.forEach(x=>{ const it=x.el.closest('.item'); if(it){it.classList.add('miss');items.add(it);} });
+
+ const names=[...new Set(m.map(x=>x.name))];
+ const note=$('missNote');
+ note.innerHTML=`<b>Осталось заполнить: ${m.length} ${m.length===1?'пункт':m.length<5?'пункта':'пунктов'}.</b>`+
+   `<div style="margin-top:5px">${names.join(' · ')}</div>`+
+   `<div style="margin-top:6px;font-size:13px;opacity:.85">Незаполненное подсвечено красным.</div>`;
+ note.classList.add('on');
+
+ const first=[...items][0];
+ if(first){
+   first.scrollIntoView({behavior:'smooth',block:'center'});
+   const f=first.querySelector('input,select,textarea');
+   setTimeout(()=>{ try{ f&&f.focus({preventScroll:true}); }catch(e){} },400);
+ }
 }
 
 async function finish(force){
  if(!started&&!force){alert('Сначала нажмите «Начать тест».');return;}
  const m=missing();
- if(m.length&&!force){alert('Не заполнено: '+m.join(', ')+'.');return;}
+ if(m.length&&!force){ showMissing(m); return; }
+ $('missNote').classList.remove('on');
+ document.querySelectorAll('.item.miss').forEach(e=>e.classList.remove('miss'));
  if(tick){clearInterval(tick);tick=null;}
  if(saveTimer){clearInterval(saveTimer);saveTimer=null;}
 
@@ -777,7 +819,7 @@ async function finish(force){
   return;
  }
  $('go').disabled=true;$('go').textContent='Отправляем…';
- try{ await sb.rpc('save_self_name',{p_token:TOKEN,p_name:$('cName').value.trim()}); }catch(e){}
+ try{ await sb.rpc('save_self_name',{p_token:TOKEN,p_name:SELF_NAME}); }catch(e){}
  const telemetry={away,away_ms:awayMs,pastes,bursts,
    block_times:Object.fromEntries(Object.keys(BT).map(k=>[k,span(k)]))};
  try{
@@ -786,7 +828,7 @@ async function finish(force){
    p_used:usedSec, p_over:overSec});
   if(error)throw error;
   if(!data||!data.ok){
-   $('go').disabled=false;$('go').textContent='Рассчитать протокол';
+   $('go').disabled=false;$('go').textContent='Завершить тест';
    alert(data&&data.reason==='already_finished'?'Этот тест уже отправлен.':'Не удалось отправить. Попробуйте ещё раз.');
    return;
   }
@@ -794,8 +836,9 @@ async function finish(force){
   $('done').style.display='flex';
  }catch(e){
   console.warn(e);
-  $('go').disabled=false;$('go').textContent='Рассчитать протокол';
-  alert('Не удалось отправить результат. Проверьте интернет и нажмите ещё раз — введённое сохранено.');
+  $('go').disabled=false;$('go').textContent='Завершить тест';
+  alert('Не удалось отправить результат: '+(e&&e.message?e.message:'неизвестная ошибка')+
+        '\n\nВведённое сохранено — нажмите ещё раз.');
  }
 }
 
