@@ -186,6 +186,12 @@ footer{margin-top:70px;padding-top:16px;border-top:1px solid var(--line);font-fa
 <li>Пересдачи нет — попытка одна</li>
 </ul>
 <p>Убедитесь, что вас не будут отвлекать ближайшие полтора часа.</p>
+<div style="margin:20px 0 18px">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.7;margin-bottom:7px">Фамилия, имя и отчество</div>
+  <input id="cName" placeholder="Иванов Иван Иванович" style="width:100%;font-family:'Inter',sans-serif;font-size:15px;padding:11px 12px;border:1px solid rgba(255,255,255,.3);border-radius:2px;background:rgba(255,255,255,.08);color:#fff;box-sizing:border-box">
+  <div id="cName-warn" style="font-size:12.5px;color:#F09A9A;margin-top:6px;min-height:16px"></div>
+  <div style="font-size:12.5px;opacity:.62;line-height:1.5">Указывайте настоящие данные. При успешном прохождении обучения проводится проверка на полиграфе, где эти сведения сверяются.</div>
+</div>
 <button id="gbtn">Начать тест</button>
 </div></div>
 
@@ -196,12 +202,6 @@ footer{margin-top:70px;padding-top:16px;border-top:1px solid var(--line);font-fa
   <div class="meta"><span>ТЕСТ ДЛЯ МЕДИАБАЕРОВ</span><span id="today"></span></div>
   <h1>Отбор медиабаера</h1>
   <div class="lede">Один заход, 85 минут, обратный отсчёт без пауз. Пересдачи нет. Опыт в арбитраже не требуется: всё, что нужно для расчётов, есть в шпаргалке ниже — она открыта всё время, пользуйтесь свободно. Искать ответы на стороне и спрашивать у ИИ не нужно и бессмысленно: половина блоков не имеет правильных ответов, а уходы со страницы фиксируются.</div>
-  <div class="strip" style="flex-direction:column;align-items:stretch;gap:6px">
-    <input id="cName" placeholder="Фамилия, имя и отчество" style="max-width:420px">
-    <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-2);max-width:520px;line-height:1.5">
-      Указывайте настоящие данные. При успешном прохождении обучения проводится проверка на полиграфе, где эти сведения сверяются.
-    </div>
-  </div>
 
   <details class="cheat" open>
     <summary>Шпаргалка: метрики и формулы</summary>
@@ -608,10 +608,12 @@ let endAt=null,tick=null,started=false,usedSec=0,overSec=0;
 function fmt(s){s=Math.max(0,s);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 async function startTest(){
  if(started)return;
- if(!PREVIEW && $('cName').value.trim().length<3){
-  alert('Впишите фамилию, имя и отчество вверху страницы — без этого тест не начать.');
-  $('cName').focus(); return;
+ if(!PREVIEW && $('cName') && $('cName').value.trim().length<3){
+  const f=$('cName'); f.style.borderColor='#F09A9A'; f.focus();
+  const w=$('cName-warn'); if(w)w.textContent='Заполните это поле, чтобы начать';
+  return;
  }
+ const wz=$('cName-warn'); if(wz)wz.textContent='';
  started=true;
  document.body.classList.remove('locked');
  const g=$('gate');if(g)g.remove();
@@ -684,6 +686,7 @@ async function boot(){
  if(isMobile()){showOverlay('mobile');return;}
  if(PREVIEW){
   $('who').textContent='Режим просмотра: результаты не сохраняются.';
+  const cn=$('cName'); if(cn)cn.value='Просмотр';
   return;
  }
  if(!sb){$('lerr-t').textContent='Не удалось подключиться';$('lerr-b').textContent='Проверьте интернет и обновите страницу.';showOverlay('linkerr');return;}
