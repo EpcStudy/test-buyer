@@ -162,6 +162,7 @@ img,table,pre,code{max-width:100%}
         <select id="f-dec"><option value="">Любое решение</option>
           <option value="none">Ожидает решения</option>
           <option value="practice">Пригласили на практику</option>
+          <option value="working">Работает в команде</option>
           <option value="reserve">В резерве</option>
           <option value="rejected">Отказали</option></select>
         <label style="display:flex;align-items:center;gap:6px;font-size:13.5px;white-space:nowrap">
@@ -196,50 +197,12 @@ img,table,pre,code{max-width:100%}
     <!-- результаты -->
     <div id="v-out" class="hide">
       <h1 class="page">Результаты в работе</h1>
-      <p class="sub">Балл теста против фактических цифр через 30, 60 и 90 дней. Ради этого всё и собиралось.</p>
-
-      <div class="cardbox" style="margin-bottom:16px">
-        <h3>Ждут заполнения</h3>
-        <div id="due-body"></div>
+      <p class="sub">Все, у кого в карточке стоит решение «Работает в команде». Ячейки заполняются прямо в таблице, сохраняются сразу.</p>
+      <div class="tools">
+        <button class="ghost" id="o-export">Выгрузить в таблицу</button>
+        <span class="muted" id="o-cnt"></span>
       </div>
-
-      <div class="tools" style="margin-bottom:14px">
-        <select id="o-cand" style="min-width:220px"></select>
-        <select id="o-cp" style="min-width:230px"></select>
-        <button class="ghost" id="o-load">Открыть</button>
-      </div>
-
-      <div class="cardbox hide" id="o-form">
-        <h3 id="o-title"></h3>
-        <div class="grid2">
-          <div>
-            <div class="lbl">Сеньор</div>
-            <div style="display:flex;gap:6px">
-              <select id="o-senior" style="flex:1"></select>
-              <button class="ghost" id="o-senior-add" title="добавить сеньора" style="padding:9px 14px">+</button>
-            </div>
-            <div id="o-senior-new" class="hide" style="display:flex;gap:6px;margin-top:8px">
-              <input id="o-senior-name" placeholder="Имя сеньора" style="flex:1">
-              <button class="ghost" id="o-senior-save" style="padding:9px 14px">Добавить</button>
-            </div>
-          </div>
-          <div><div class="lbl">Профит за период, $</div><input id="o-profit" type="number" step="1"></div>
-          <div><div class="lbl">ROI за период, %</div><input id="o-roi" type="number" step="1"></div>
-        </div>
-        <textarea id="o-note" rows="3" placeholder="Комментарий, если есть что добавить" style="margin-top:12px"></textarea>
-        <div class="tools" style="margin-top:12px">
-          <button class="primary" id="o-save" style="width:auto">Сохранить</button>
-          <span class="muted" id="o-ok"></span>
-        </div>
-      </div>
-
-      <div style="margin-top:22px">
-        <div class="tools">
-          <button class="ghost" id="o-export">Выгрузить всё в таблицу</button>
-          <span class="muted" id="o-cnt"></span>
-        </div>
-        <div id="o-table" style="margin-top:12px"></div>
-      </div>
+      <div style="overflow-x:auto"><div id="o-table"></div></div>
     </div>
 
     <!-- команда -->
@@ -279,10 +242,9 @@ img,table,pre,code{max-width:100%}
           <label style="display:flex;align-items:flex-start;gap:8px;margin-top:12px;cursor:pointer">
             <input type="checkbox" id="src-detail" style="width:auto;margin-top:3px">
             <span style="font-size:13.5px">
-              <b>Спрашивать уточнение</b>
+              <b>Спрашивать рекомендацию</b>
               <span style="display:block;color:var(--ink-2);margin-top:3px">
-                Если включить, при выборе этого источника рекрутер обязан вписать подробность.
-                Нужно для рекомендаций: важно знать, кто именно привёл человека — через полгода
+                Включается, если нам важно знать, кто именно привёл человека — через полгода
                 будет видно, чьи рекомендации дают сильных кандидатов.
               </span>
             </span>
@@ -304,8 +266,6 @@ const TEST_BASE=location.origin+'/';
 const sb=supabase.createClient(SB_URL,SB_KEY);
 const $=id=>document.getElementById(id);
 const d2=d=>{if(!d)return'—';const x=new Date(d);const p=n=>String(n).padStart(2,'0');return `${p(x.getDate())}.${p(x.getMonth()+1)}.${String(x.getFullYear()).slice(2)}`};
-const MONTHS=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-const ymLabel=ym=>{const x=new Date(ym);return `${MONTHS[x.getMonth()].replace(/я$|а$/,m=>m)} ${String(x.getFullYear()).slice(2)}`};
 const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
 let ME=null, SOURCES=[], ROWS=[];
@@ -323,7 +283,7 @@ const SUB={
  i:['нужен смысл продукта','Должен верить, что продукт приносит людям пользу. Если считает дело бессмысленным или вредным — долго не протянет.'],
  k:['держат люди','Работает на команде. Развалится коллектив — уйдёт, даже если задачи и деньги устраивают.']};
 const STAGE={invited:['Приглашён','n'],opened:['Открыл ссылку','n'],in_progress:['Проходит тест','a'],finished:['Завершил тест','g'],decided:['Завершил тест','g']};
-const DECISION={practice:['Пригласили на практику','g'],reserve:['В резерве','a'],rejected:['Отказали','r']};
+const DECISION={practice:['Пригласили на практику','g'],working:['Работает в команде','g'],reserve:['В резерве','a'],rejected:['Отказали','r']};
 const ASQ_Q=['Кампания потратила $1500 и не дала ни одной заявки',
  'Рекламный аккаунт заблокировали на второй день после запуска',
  'Из двадцати сделанных объявлений не выстрелило ни одно',
@@ -643,20 +603,22 @@ function notesBox(c){
     <select id="d-dec" style="min-width:220px">
       <option value="">Решение не принято</option>
       <option value="practice">Пригласить на практику</option>
+      <option value="working">Работает в команде</option>
       <option value="reserve">В резерв</option>
       <option value="rejected">Отказать</option></select>
     <button class="ghost" id="d-save">Сохранить</button>
     <span class="muted" id="d-ok"></span>
   </div>
-  <textarea id="d-notes" rows="4" placeholder="Что выяснилось на созвоне, впечатление, договорённости…">${esc(c.notes||'')}</textarea>
-  <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line-2)">
-    <div class="lbl">Дата выхода на работу</div>
-    <div class="tools" style="margin:6px 0 0">
-      <input type="date" id="d-hired" value="${c.hired_at||''}" style="width:auto">
-      <button class="ghost" id="d-hired-save">Сохранить</button>
-      <span class="muted" style="font-size:12.5px">после этого система начнёт напоминать про результаты на 30, 60 и 90 дней</span>
+  <div id="d-senior-wrap" class="hide" style="margin-bottom:12px">
+    <div class="lbl">Руководитель</div>
+    <div class="tools" style="margin:0">
+      <select id="d-senior" style="min-width:220px"></select>
+      <button class="ghost" id="d-senior-add" style="padding:9px 14px">+</button>
+      <input id="d-senior-name" class="hide" placeholder="Имя руководителя" style="min-width:200px">
+      <button class="ghost hide" id="d-senior-save">Добавить</button>
     </div>
   </div>
+  <textarea id="d-notes" rows="4" placeholder="Что выяснилось на созвоне, впечатление, договорённости…">${esc(c.notes||'')}</textarea>
   <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line-2);display:flex;gap:8px;flex-wrap:wrap">
     <button class="ghost" id="d-hide">${c.hidden?'Вернуть в список':'Скрыть из списка'}</button>
     ${admin?`<button class="ghost" id="d-del" style="color:var(--fail);border-color:var(--fail)">Удалить насовсем</button>`:''}
@@ -665,21 +627,31 @@ function notesBox(c){
   </div>`;
 }
 
-function bindNotes(c){
+async function bindNotes(c){
   if($('d-dec'))$('d-dec').value=c.decision||'';
+  if(!SENIORS.length){const {data}=await sb.from('seniors').select('*').eq('is_active',true).order('name');SENIORS=data||[];}
+  const fillSen=()=>{$('d-senior').innerHTML='<option value="">—</option>'+
+    SENIORS.map(x=>`<option value="${x.id}" ${c.senior_id===x.id?'selected':''}>${esc(x.name)}</option>`).join('');};
+  fillSen();
+  const toggleSen=()=>$('d-senior-wrap').classList.toggle('hide',$('d-dec').value!=='working');
+  toggleSen(); $('d-dec').onchange=toggleSen;
+  $('d-senior-add').onclick=()=>{['d-senior-name','d-senior-save'].forEach(id=>$(id).classList.toggle('hide'));$('d-senior-name').focus();};
+  $('d-senior-save').onclick=async()=>{
+    const name=$('d-senior-name').value.trim(); if(name.length<2)return;
+    const {data,error}=await sb.from('seniors').insert({name}).select().single();
+    if(error){alert('Не удалось: '+error.message);return;}
+    SENIORS.push(data); fillSen(); $('d-senior').value=data.id;
+    $('d-senior-name').value=''; ['d-senior-name','d-senior-save'].forEach(id=>$(id).classList.add('hide'));
+  };
   if(!$('d-save'))return;
   $('d-save').onclick=async()=>{
     const dec=$('d-dec').value||null;
-    const patch={notes:$('d-notes').value,decision:dec};
+    const patch={notes:$('d-notes').value,decision:dec,
+                 senior_id: dec==='working' ? ($('d-senior').value||null) : null};
+    if(dec==='working'&&!patch.senior_id){$('d-ok').textContent='Укажите руководителя';return;}
     if(dec){patch.status='decided';patch.decided_at=new Date().toISOString();patch.decided_by=ME.id;}
     const {error}=await sb.from('candidates').update(patch).eq('id',c.id);
     $('d-ok').textContent=error?'Не сохранилось':'Сохранено';
-    setTimeout(()=>{if($('d-ok'))$('d-ok').textContent=''},2500);
-  };
-  if($('d-hired-save'))$('d-hired-save').onclick=async()=>{
-    const v=$('d-hired').value||null;
-    await sb.from('candidates').update({hired_at:v}).eq('id',c.id);
-    $('d-ok').textContent='Дата сохранена';
     setTimeout(()=>{if($('d-ok'))$('d-ok').textContent=''},2500);
   };
   $('d-hide').onclick=async()=>{
@@ -696,122 +668,72 @@ function bindNotes(c){
 }
 
 /* ---------- результаты ---------- */
-let SENIORS=[], EXPORT=[], CANDS=[];
+let ROWSOUT=[];
 
 async function loadOutcomes(){
-  const {data:sr}=await sb.from('seniors').select('*').eq('is_active',true).order('name');
-  SENIORS=sr||[];
-  $('o-senior').innerHTML='<option value="">—</option>'+SENIORS.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
-
-  const {data:cands}=await sb.from('candidates').select('id,full_name,hired_at')
-    .not('hired_at','is',null).eq('hidden',false).order('hired_at',{ascending:false});
-  CANDS=cands||[];
-  $('o-cand').innerHTML=CANDS.length
-    ? CANDS.map(c=>`<option value="${c.id}">${esc(c.full_name)} · с ${d2(c.hired_at)}</option>`).join('')
-    : '<option value="">нет вышедших на работу</option>';
-  fillMonths();
-
-  const {data:due}=await sb.from('outcomes_due').select('*');
-  $('due-body').innerHTML=(due||[]).length
-    ? (due||[]).map(x=>`<div class="kv"><span class="k">${esc(x.full_name)}</span>
-       <span class="v">${ymLabel(x.period_ym)} · ${x.month_no}-й месяц</span></div>`).join('')
-    : '<div class="muted">Всё заполнено.</div>';
-
-  loadExport();
-}
-
-function fillMonths(){
-  const c=CANDS.find(x=>x.id===$('o-cand').value);
-  if(!c){$('o-cp').innerHTML='';return;}
-  const hire=new Date(c.hired_at), now=new Date();
-  const out=[]; let y=hire.getFullYear(), m=hire.getMonth(), i=1;
-  while(y<now.getFullYear() || (y===now.getFullYear() && m<=now.getMonth())){
-    const ym=`${y}-${String(m+1).padStart(2,'0')}-01`;
-    const partial = i===1 && hire.getDate()>1;
-    out.push(`<option value="${ym}">${ymLabel(ym)} · ${i}-й месяц${partial?' (неполный)':''}</option>`);
-    m++; if(m>11){m=0;y++;} i++;
+  const {data,error}=await sb.from('results_table').select('*');
+  ROWSOUT=data||[];
+  $('o-cnt').textContent=error?('ошибка: '+error.message):('человек: '+ROWSOUT.length);
+  if(!ROWSOUT.length){
+    $('o-table').innerHTML='<div class="empty">Пока никого. Кандидат попадает сюда, когда в его карточке выбрано решение «Работает в команде».</div>';
+    return;
   }
-  $('o-cp').innerHTML=out.reverse().join('');
-}
+  const cell=(id,m,f,v)=>`<input class="oc" data-id="${id}" data-m="${m}" data-f="${f}"
+     value="${v??''}" inputmode="decimal" style="width:92px;text-align:right;padding:6px 8px">`;
 
-async function openOutcome(){
-  const cid=$('o-cand').value, cp=$('o-cp').value;
-  if(!cid||!cp)return;
-  const name=$('o-cand').selectedOptions[0].textContent.split(' · ')[0];
-  $('o-title').textContent=`${name} — ${$('o-cp').selectedOptions[0].textContent}`;
-  const {data}=await sb.from('outcomes').select('*').eq('candidate_id',cid).eq('period_ym',cp).maybeSingle();
-  $('o-senior').value=data?.senior_id||'';
-  $('o-profit').value=data?.profit??'';
-  $('o-roi').value=data?.roi??'';
-  $('o-note').value=data?.note||'';
-  $('o-form').classList.remove('hide');
-}
-$('o-load').onclick=openOutcome;
-$('o-cand').onchange=()=>{fillMonths();openOutcome();};
-$('o-cp').onchange=openOutcome;
-
-$('o-senior-add').onclick=()=>{$('o-senior-new').classList.toggle('hide');$('o-senior-name').focus();};
-$('o-senior-save').onclick=async()=>{
-  const name=$('o-senior-name').value.trim();
-  if(name.length<2)return;
-  const {data,error}=await sb.from('seniors').insert({name}).select().single();
-  if(error){alert('Не удалось добавить: '+error.message);return;}
-  SENIORS.push(data);
-  $('o-senior').innerHTML='<option value="">—</option>'+SENIORS.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
-  $('o-senior').value=data.id;
-  $('o-senior-name').value=''; $('o-senior-new').classList.add('hide');
-};
-$('o-senior-name').addEventListener('keydown',e=>{if(e.key==='Enter')$('o-senior-save').click()});
-
-$('o-save').onclick=async()=>{
-  const cid=$('o-cand').value, cp=$('o-cp').value;
-  const num=id=>{const v=$(id).value.trim();return v===''?null:Number(v);};
-  const row={candidate_id:cid, period_ym:cp,
-    senior_id:$('o-senior').value||null,
-    profit:num('o-profit'), roi:num('o-roi'), note:$('o-note').value||null,
-    filled_by:ME.id, filled_at:new Date().toISOString()};
-  const {error}=await sb.from('outcomes').upsert(row,{onConflict:'candidate_id,period_ym'});
-  $('o-ok').textContent=error?('Не сохранилось: '+error.message):'Сохранено';
-  setTimeout(()=>{if($('o-ok'))$('o-ok').textContent=''},3000);
-  if(!error)loadOutcomes();
-};
-
-async function loadExport(){
-  const {data,error}=await sb.from('analysis_export').select('*');
-  EXPORT=data||[];
-  $('o-cnt').textContent=error?'':`строк: ${EXPORT.length}`;
-  if(!EXPORT.length){$('o-table').innerHTML='<div class="muted">Пока нет заполненных результатов.</div>';return;}
   $('o-table').innerHTML=`<table class="list"><thead><tr>
-    <th>Кандидат</th><th>Месяц</th><th>Сеньор</th><th>Балл теста</th>
-    <th>Профит</th><th>ROI</th><th>Средний профит по руководителю</th>
-    <th>Место среди своих</th><th>Место среди всех</th></tr></thead><tbody>`+
-    EXPORT.map(r=>`<tr>
-      <td><b>${esc(r.full_name)}</b></td>
-      <td class="mono">${ymLabel(r.period_ym)}<div class="muted" style="font-size:12px">${r.month_no}-й${r.is_partial?' · неполный':''}</div></td>
-      <td>${esc(r.senior||'—')}</td>
-      <td class="mono">${r.test_score??'—'}</td>
-      <td class="mono">${r.profit!=null?
-        `<span style="color:${r.profit<0?'var(--fail)':'inherit'}">$${Number(r.profit).toLocaleString('ru-RU')}</span>`:'—'}</td>
-      <td class="mono">${r.roi!=null?
-        `<span style="color:${r.roi<0?'var(--fail)':'inherit'}">${r.roi}%</span>`:'—'}</td>
-      <td class="mono">${r.avg_senior!=null?'$'+Number(r.avg_senior).toLocaleString('ru-RU')+
-        (r.n_senior?` <span class="muted">(${r.n_senior})</span>`:''):'—'}</td>
-      <td class="mono">${r.place_senior!=null?
-        `<span style="color:${r.place_senior===1?'var(--pass)':'inherit'}">${r.place_senior} из ${r.n_senior}</span>`
-        :'<span class="muted">один в группе</span>'}</td>
-      <td class="mono">${r.place_all!=null?
-        `<span style="color:${r.place_all===1?'var(--pass)':'inherit'}">${r.place_all} из ${r.n_all}</span>`
-        :'<span class="muted">—</span>'}</td>
-    </tr>`).join('')+'</tbody></table>'+
-    '<div class="muted" style="margin-top:8px;font-size:12.5px">Считается само. <b>Средний профит по руководителю</b> — сколько в среднем делают его ассистенты за этот месяц работы, в скобках сколько человек в расчёте. <b>Место среди своих</b> — какое место человек занял среди ассистентов того же руководителя за тот же месяц работы. <b>Место среди всех</b> — то же по всем ассистентам сразу. Места появляются, когда в сравнении есть хотя бы двое.</div>';
+    <th>Кандидат</th><th>Балл</th><th>Руководитель</th>
+    <th colspan="2">1-й месяц</th><th colspan="2">2-й месяц</th>
+    <th colspan="2">3-й месяц</th><th colspan="2">4-й месяц</th><th>Итог</th></tr>
+    <tr><th></th><th></th><th></th>
+    <th>профит</th><th>ROI</th><th>профит</th><th>ROI</th>
+    <th>профит</th><th>ROI</th><th>профит</th><th>ROI</th><th>средний</th></tr></thead><tbody>`+
+   ROWSOUT.map(r=>`<tr>
+     <td><b>${esc(r.full_name)}</b></td>
+     <td class="mono">${r.test_score??'—'}</td>
+     <td>${esc(r.senior||'—')}</td>
+     <td>${cell(r.id,1,'profit',r.p1)}</td>
+     <td>${cell(r.id,1,'roi',r.r1)}
+       <div><label style="font-size:11.5px;color:var(--ink-2);display:flex;align-items:center;gap:5px;margin-top:4px;cursor:pointer">
+       <input type="checkbox" class="ocp" data-id="${r.id}" ${r.partial1?'checked':''} style="width:auto">неполный</label></div></td>
+     <td>${cell(r.id,2,'profit',r.p2)}</td><td>${cell(r.id,2,'roi',r.r2)}</td>
+     <td>${cell(r.id,3,'profit',r.p3)}</td><td>${cell(r.id,3,'roi',r.r3)}</td>
+     <td>${cell(r.id,4,'profit',r.p4)}</td><td>${cell(r.id,4,'roi',r.r4)}</td>
+     <td class="mono">${r.avg_profit!=null?
+        `<span style="color:${r.avg_profit<0?'var(--fail)':'inherit'}">$${Number(r.avg_profit).toLocaleString('ru-RU')}</span>
+         <span class="muted">/</span> <span style="color:${r.avg_roi<0?'var(--fail)':'inherit'}">${r.avg_roi??'—'}%</span>
+         <div class="muted" style="font-size:11.5px">за ${r.months_filled} мес</div>`:'<span class="muted">—</span>'}</td>
+   </tr>`).join('')+'</tbody></table>'+
+   '<div class="muted" style="margin-top:10px;font-size:12.5px">Итог — среднее по заполненным месяцам: профит и ROI. Пометка «неполный» ставится, если первый месяц человек отработал не целиком, — тогда его цифры читаются с поправкой.</div>';
+
+  document.querySelectorAll('.oc').forEach(el=>{el.onchange=saveCell;el.onblur=saveCell;});
+  document.querySelectorAll('.ocp').forEach(el=>el.onchange=savePartial);
 }
 
-$('o-export').onclick=()=>{
-  if(!EXPORT.length){alert('Пока нечего выгружать.');return;}
-  const cols=Object.keys(EXPORT[0]);
-  const esc2=v=>{if(v==null)return'';const s=typeof v==='object'?JSON.stringify(v):String(v);
+async function saveCell(e){
+  const el=e.target, v=el.value.trim();
+  const row={candidate_id:el.dataset.id, month_no:+el.dataset.m,
+             [el.dataset.f]: v===''?null:Number(v), filled_by:ME.id, filled_at:new Date().toISOString()};
+  const {error}=await sb.from('outcomes').upsert(row,{onConflict:'candidate_id,month_no'});
+  el.style.borderColor=error?'var(--fail)':'var(--pass)';
+  setTimeout(()=>el.style.borderColor='',1200);
+  if(!error)loadOutcomes();
+}
+
+async function savePartial(e){
+  const el=e.target;
+  await sb.from('outcomes').upsert({candidate_id:el.dataset.id, month_no:1,
+    is_partial:el.checked, filled_by:ME.id},{onConflict:'candidate_id,month_no'});
+}
+
+$('o-export').onclick=async()=>{
+  const {data}=await sb.from('analysis_export').select('*');
+  const rows=data||[];
+  if(!rows.length){alert('Пока нечего выгружать.');return;}
+  const cols=Object.keys(rows[0]);
+  const q=v=>{if(v==null)return'';const s=typeof v==='object'?JSON.stringify(v):String(v);
     return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
-  const csv=[cols.join(',')].concat(EXPORT.map(r=>cols.map(c=>esc2(r[c])).join(','))).join('\n');
+  const csv=[cols.join(',')].concat(rows.map(r=>cols.map(c=>q(r[c])).join(','))).join('\n');
   const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
@@ -899,7 +821,7 @@ async function loadStats(){
   const rows=(data||[]);
 
   $('src-list').innerHTML = rows.length ? rows.map(r=>
-    `<div class="kv"><span class="k">${esc(r.source)}${r.requires_detail?' <span class="pill n">спрашиваем уточнение</span>':''}${!r.is_active?' <span class="pill a">убран</span>':''}</span>
+    `<div class="kv"><span class="k">${esc(r.source)}${r.requires_detail?' <span class="pill n">спрашиваем рекомендацию</span>':''}${!r.is_active?' <span class="pill a">убран</span>':''}</span>
      ${admin&&r.is_active?`<button class="ghost" data-src="${r.id}" style="padding:4px 10px;font-size:12px">Убрать</button>`:''}</div>`).join('')
     : '<div class="muted">Пока пусто.</div>';
 
@@ -911,10 +833,10 @@ async function loadStats(){
 
   if(error||!rows.length){$('stats-body').innerHTML='<div class="empty">Пока нет данных.</div>';return;}
   $('stats-body').innerHTML=`<table class="list"><thead><tr>
-    <th>Источник</th><th>Всего</th><th>Завершили</th><th>Пригласили на практику</th><th>Отказали</th><th>Средний балл</th></tr></thead><tbody>`+
+    <th>Источник</th><th>Всего</th><th>Завершили</th><th>На практику</th><th>Работают</th><th>Отказали</th><th>Средний балл</th></tr></thead><tbody>`+
     rows.map(r=>`<tr><td><b>${esc(r.source||'—')}</b></td>
       <td class="mono">${r.total||0}</td><td class="mono">${r.finished||0}</td>
-      <td class="mono">${r.practice||0}</td><td class="mono">${r.rejected||0}</td>
+      <td class="mono">${r.practice||0}</td><td class="mono">${r.working||0}</td><td class="mono">${r.rejected||0}</td>
       <td class="mono">${r.avg_score??'—'}</td></tr>`).join('')+'</tbody></table>'+
     '<div class="muted" style="margin-top:8px;font-size:12.5px">«Пригласили» и «Отказали» заполняются, когда рекрутеры проставляют решения в карточках.</div>';
 }
