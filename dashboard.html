@@ -629,12 +629,13 @@ function notesBox(c){
 
 async function bindNotes(c){
   if($('d-dec'))$('d-dec').value=c.decision||'';
-  if(!SENIORS.length){const {data}=await sb.from('seniors').select('*').eq('is_active',true).order('name');SENIORS=data||[];}
+  const toggleSen=()=>{const w=$('d-senior-wrap'); if(w)w.classList.toggle('hide',$('d-dec').value!=='working');};
+  toggleSen(); $('d-dec').onchange=toggleSen;
+  try{ if(!SENIORS.length){const {data}=await sb.from('seniors').select('*').eq('is_active',true).order('name');SENIORS=data||[];} }
+  catch(e){ console.warn('seniors',e); }
   const fillSen=()=>{$('d-senior').innerHTML='<option value="">—</option>'+
     SENIORS.map(x=>`<option value="${x.id}" ${c.senior_id===x.id?'selected':''}>${esc(x.name)}</option>`).join('');};
   fillSen();
-  const toggleSen=()=>$('d-senior-wrap').classList.toggle('hide',$('d-dec').value!=='working');
-  toggleSen(); $('d-dec').onchange=toggleSen;
   $('d-senior-add').onclick=()=>{['d-senior-name','d-senior-save'].forEach(id=>$(id).classList.toggle('hide'));$('d-senior-name').focus();};
   $('d-senior-save').onclick=async()=>{
     const name=$('d-senior-name').value.trim(); if(name.length<2)return;
@@ -646,8 +647,10 @@ async function bindNotes(c){
   if(!$('d-save'))return;
   $('d-save').onclick=async()=>{
     const dec=$('d-dec').value||null;
-    const patch={notes:$('d-notes').value,decision:dec,
-                 senior_id: dec==='working' ? ($('d-senior').value||null) : null};
+    const patch={notes:$('d-notes').value,decision:dec};
+    // колонку руководителя трогаем только когда она реально нужна —
+    // иначе сохранение падало бы у всех решений, если её нет в базе
+    if(dec==='working') patch.senior_id=$('d-senior').value||null;
     const ok=$('d-ok');
     if(dec==='working'&&!patch.senior_id){
       ok.style.color='var(--fail)';
@@ -661,6 +664,8 @@ async function bindNotes(c){
     const {error}=await sb.from('candidates').update(patch).eq('id',c.id);
     ok.style.color=error?'var(--fail)':'var(--pass)';
     ok.textContent=error?('Не сохранилось: '+error.message):'Сохранено';
+    if(error){alert('Не сохранилось.\n\n'+error.message+
+      '\n\nЕсли здесь написано про senior_id или decision — значит файл 20-table.sql в базе не отработал.');}
     setTimeout(()=>{if($('d-ok')){$('d-ok').textContent='';$('d-ok').style.color='';}},4000);
   };
   $('d-hide').onclick=async()=>{
@@ -677,7 +682,7 @@ async function bindNotes(c){
 }
 
 /* ---------- результаты ---------- */
-let ROWSOUT=[];
+let ROWSOUT=[], SENIORS=[];
 
 async function loadOutcomes(){
   const {data,error}=await sb.from('results_table').select('*');
