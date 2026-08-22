@@ -162,9 +162,9 @@ img,table,pre,code{max-width:100%}
         <select id="f-dec"><option value="">Любое решение</option>
           <option value="none">Ожидает решения</option>
           <option value="practice">Пригласили на практику</option>
-          <option value="working">Работает в команде</option>
           <option value="reserve">В резерве</option>
-          <option value="rejected">Отказали</option></select>
+          <option value="rejected">Отказали</option>
+          <option value="working">Работает ассистентом</option></select>
         <label style="display:flex;align-items:center;gap:6px;font-size:13.5px;white-space:nowrap">
           <input type="checkbox" id="f-hidden" style="width:auto"> показать скрытых</label>
         <button class="ghost" id="f-reset">Сбросить</button>
@@ -197,7 +197,7 @@ img,table,pre,code{max-width:100%}
     <!-- результаты -->
     <div id="v-out" class="hide">
       <h1 class="page">Результаты в работе</h1>
-      <p class="sub">Все, у кого в карточке стоит решение «Работает в команде». Ячейки заполняются прямо в таблице, сохраняются сразу.</p>
+      <p class="sub">Все, у кого в карточке стоит решение «Работает ассистентом». Ячейки заполняются прямо в таблице, сохраняются сразу.</p>
       <div class="tools">
         <button class="ghost" id="o-export">Выгрузить в таблицу</button>
         <span class="muted" id="o-cnt"></span>
@@ -283,7 +283,7 @@ const SUB={
  i:['нужен смысл продукта','Должен верить, что продукт приносит людям пользу. Если считает дело бессмысленным или вредным — долго не протянет.'],
  k:['держат люди','Работает на команде. Развалится коллектив — уйдёт, даже если задачи и деньги устраивают.']};
 const STAGE={invited:['Приглашён','n'],opened:['Открыл ссылку','n'],in_progress:['Проходит тест','a'],finished:['Завершил тест','g'],decided:['Завершил тест','g']};
-const DECISION={practice:['Пригласили на практику','g'],working:['Работает в команде','g'],reserve:['В резерве','a'],rejected:['Отказали','r']};
+const DECISION={practice:['Пригласили на практику','g'],working:['Работает ассистентом','g'],reserve:['В резерве','a'],rejected:['Отказали','r']};
 const ASQ_Q=['Кампания потратила $1500 и не дала ни одной заявки',
  'Рекламный аккаунт заблокировали на второй день после запуска',
  'Из двадцати сделанных объявлений не выстрелило ни одно',
@@ -603,9 +603,9 @@ function notesBox(c){
     <select id="d-dec" style="min-width:220px">
       <option value="">Решение не принято</option>
       <option value="practice">Пригласить на практику</option>
-      <option value="working">Работает в команде</option>
       <option value="reserve">В резерв</option>
-      <option value="rejected">Отказать</option></select>
+      <option value="rejected">Отказать</option>
+      <option value="working">Работает ассистентом</option></select>
     <button class="ghost" id="d-save">Сохранить</button>
     <span class="muted" id="d-ok"></span>
   </div>
@@ -648,11 +648,20 @@ async function bindNotes(c){
     const dec=$('d-dec').value||null;
     const patch={notes:$('d-notes').value,decision:dec,
                  senior_id: dec==='working' ? ($('d-senior').value||null) : null};
-    if(dec==='working'&&!patch.senior_id){$('d-ok').textContent='Укажите руководителя';return;}
+    const ok=$('d-ok');
+    if(dec==='working'&&!patch.senior_id){
+      ok.style.color='var(--fail)';
+      ok.textContent='Сначала выберите руководителя';
+      $('d-senior').style.borderColor='var(--fail)';
+      $('d-senior').focus();
+      setTimeout(()=>{$('d-senior').style.borderColor=''},2500);
+      return;
+    }
     if(dec){patch.status='decided';patch.decided_at=new Date().toISOString();patch.decided_by=ME.id;}
     const {error}=await sb.from('candidates').update(patch).eq('id',c.id);
-    $('d-ok').textContent=error?'Не сохранилось':'Сохранено';
-    setTimeout(()=>{if($('d-ok'))$('d-ok').textContent=''},2500);
+    ok.style.color=error?'var(--fail)':'var(--pass)';
+    ok.textContent=error?('Не сохранилось: '+error.message):'Сохранено';
+    setTimeout(()=>{if($('d-ok')){$('d-ok').textContent='';$('d-ok').style.color='';}},4000);
   };
   $('d-hide').onclick=async()=>{
     if(!c.hidden && !confirm('Скрыть кандидата из списка?\n\nДанные сохранятся, вернуть можно в любой момент.'))return;
@@ -675,7 +684,7 @@ async function loadOutcomes(){
   ROWSOUT=data||[];
   $('o-cnt').textContent=error?('ошибка: '+error.message):('человек: '+ROWSOUT.length);
   if(!ROWSOUT.length){
-    $('o-table').innerHTML='<div class="empty">Пока никого. Кандидат попадает сюда, когда в его карточке выбрано решение «Работает в команде».</div>';
+    $('o-table').innerHTML='<div class="empty">Пока никого. Кандидат попадает сюда, когда в его карточке выбрано решение «Работает ассистентом».</div>';
     return;
   }
   const cell=(id,m,f,v)=>`<input class="oc" data-id="${id}" data-m="${m}" data-f="${f}"
