@@ -205,9 +205,7 @@ img,table,pre,code{max-width:100%}
 
       <div class="tools" style="margin-bottom:14px">
         <select id="o-cand" style="min-width:220px"></select>
-        <select id="o-cp" style="width:auto">
-          <option value="30">30 дней</option><option value="60">60 дней</option>
-          <option value="90">90 дней</option><option value="120">120 дней</option></select>
+        <select id="o-cp" style="min-width:230px"></select>
         <button class="ghost" id="o-load">Открыть</button>
       </div>
 
@@ -305,6 +303,9 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const TEST_BASE=location.origin+'/';
 const sb=supabase.createClient(SB_URL,SB_KEY);
 const $=id=>document.getElementById(id);
+const d2=d=>{if(!d)return'—';const x=new Date(d);const p=n=>String(n).padStart(2,'0');return `${p(x.getDate())}.${p(x.getMonth()+1)}.${String(x.getFullYear()).slice(2)}`};
+const MONTHS=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const ymLabel=ym=>{const x=new Date(ym);return `${MONTHS[x.getMonth()].replace(/я$|а$/,m=>m)} ${String(x.getFullYear()).slice(2)}`};
 const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
 let ME=null, SOURCES=[], ROWS=[];
@@ -442,7 +443,7 @@ function renderList(){
       <td><span class="pill ${d[1]}">${d[0]}</span></td>
       <td>${spine(r.scores)}</td>
       <td>${r.composite!=null?`<span class="score">${Math.max(3,Math.min(10,Math.round(r.composite/10)))}</span>${v?` <span class="pill ${v[1]}">${v[0]}</span>`:''}`:'<span class="muted">—</span>'}</td>
-      <td class="mono" style="font-size:11.5px;color:var(--ink-2)">${new Date(r.created_at).toLocaleDateString('ru-RU')}</td>
+      <td class="mono" style="font-size:11.5px;color:var(--ink-2)">${d2(r.created_at)}</td>
     </tr>`}).join('')+'</tbody></table>';
   document.querySelectorAll('tr.row').forEach(t=>t.onclick=()=>openCard(t.dataset.id));
 }
@@ -470,8 +471,8 @@ function anketa(c,a){
     ['Контакт', c.contact?esc(c.contact):'<span class="muted">не указан</span>'],
     ['Источник', esc(c.sources?.name||'—')+(c.source_detail?' · '+esc(c.source_detail):'')],
     ['Рекрутер', esc(c.profiles?.full_name||'—')],
-    ['Приглашён', a?new Date(a.invited_at).toLocaleDateString('ru-RU'):'—'],
-    ['Завершил', a?.finished_at?`${new Date(a.finished_at).toLocaleDateString('ru-RU')} · ${Math.round((a.used_sec||0)/60)} мин${a.over_sec>0?' (превышение '+Math.round(a.over_sec/60)+' мин)':''}`:'<span class="muted">ещё нет</span>']
+    ['Приглашён', a?d2(a.invited_at):'—'],
+    ['Завершил', a?.finished_at?`${d2(a.finished_at)} · ${Math.round((a.used_sec||0)/60)} мин${a.over_sec>0?' (превышение '+Math.round(a.over_sec/60)+' мин)':''}`:'<span class="muted">ещё нет</span>']
   ];
   return `<div class="cardbox"><h3>Анкета</h3>
    ${rows.map(([k,v])=>`<div class="kv"><span class="k">${k}</span><span class="v" style="color:var(--ink)">${v}</span></div>`).join('')}
@@ -695,7 +696,7 @@ function bindNotes(c){
 }
 
 /* ---------- результаты ---------- */
-let SENIORS=[], EXPORT=[];
+let SENIORS=[], EXPORT=[], CANDS=[];
 
 async function loadOutcomes(){
   const {data:sr}=await sb.from('seniors').select('*').eq('is_active',true).order('name');
@@ -704,31 +705,50 @@ async function loadOutcomes(){
 
   const {data:cands}=await sb.from('candidates').select('id,full_name,hired_at')
     .not('hired_at','is',null).eq('hidden',false).order('hired_at',{ascending:false});
-  $('o-cand').innerHTML=(cands||[]).length
-    ? (cands||[]).map(c=>`<option value="${c.id}">${esc(c.full_name)} · с ${c.hired_at}</option>`).join('')
+  CANDS=cands||[];
+  $('o-cand').innerHTML=CANDS.length
+    ? CANDS.map(c=>`<option value="${c.id}">${esc(c.full_name)} · с ${d2(c.hired_at)}</option>`).join('')
     : '<option value="">нет вышедших на работу</option>';
+  fillMonths();
 
   const {data:due}=await sb.from('outcomes_due').select('*');
   $('due-body').innerHTML=(due||[]).length
-    ? (due||[]).map(d=>`<div class="kv"><span class="k">${esc(d.full_name)}</span>
-       <span class="v">${d.checkpoint} дней · с ${d.due_date}</span></div>`).join('')
+    ? (due||[]).map(x=>`<div class="kv"><span class="k">${esc(x.full_name)}</span>
+       <span class="v">${ymLabel(x.period_ym)} · ${x.month_no}-й месяц</span></div>`).join('')
     : '<div class="muted">Всё заполнено.</div>';
 
   loadExport();
 }
 
-$('o-load').onclick=async()=>{
-  const cid=$('o-cand').value, cp=+$('o-cp').value;
-  if(!cid)return;
+function fillMonths(){
+  const c=CANDS.find(x=>x.id===$('o-cand').value);
+  if(!c){$('o-cp').innerHTML='';return;}
+  const hire=new Date(c.hired_at), now=new Date();
+  const out=[]; let y=hire.getFullYear(), m=hire.getMonth(), i=1;
+  while(y<now.getFullYear() || (y===now.getFullYear() && m<=now.getMonth())){
+    const ym=`${y}-${String(m+1).padStart(2,'0')}-01`;
+    const partial = i===1 && hire.getDate()>1;
+    out.push(`<option value="${ym}">${ymLabel(ym)} · ${i}-й месяц${partial?' (неполный)':''}</option>`);
+    m++; if(m>11){m=0;y++;} i++;
+  }
+  $('o-cp').innerHTML=out.reverse().join('');
+}
+
+async function openOutcome(){
+  const cid=$('o-cand').value, cp=$('o-cp').value;
+  if(!cid||!cp)return;
   const name=$('o-cand').selectedOptions[0].textContent.split(' · ')[0];
-  $('o-title').textContent=`${name} — ${cp} дней`;
-  const {data}=await sb.from('outcomes').select('*').eq('candidate_id',cid).eq('checkpoint',cp).maybeSingle();
+  $('o-title').textContent=`${name} — ${$('o-cp').selectedOptions[0].textContent}`;
+  const {data}=await sb.from('outcomes').select('*').eq('candidate_id',cid).eq('period_ym',cp).maybeSingle();
   $('o-senior').value=data?.senior_id||'';
   $('o-profit').value=data?.profit??'';
   $('o-roi').value=data?.roi??'';
   $('o-note').value=data?.note||'';
   $('o-form').classList.remove('hide');
-};
+}
+$('o-load').onclick=openOutcome;
+$('o-cand').onchange=()=>{fillMonths();openOutcome();};
+$('o-cp').onchange=openOutcome;
 
 $('o-senior-add').onclick=()=>{$('o-senior-new').classList.toggle('hide');$('o-senior-name').focus();};
 $('o-senior-save').onclick=async()=>{
@@ -744,13 +764,13 @@ $('o-senior-save').onclick=async()=>{
 $('o-senior-name').addEventListener('keydown',e=>{if(e.key==='Enter')$('o-senior-save').click()});
 
 $('o-save').onclick=async()=>{
-  const cid=$('o-cand').value, cp=+$('o-cp').value;
+  const cid=$('o-cand').value, cp=$('o-cp').value;
   const num=id=>{const v=$(id).value.trim();return v===''?null:Number(v);};
-  const row={candidate_id:cid, checkpoint:cp,
+  const row={candidate_id:cid, period_ym:cp,
     senior_id:$('o-senior').value||null,
     profit:num('o-profit'), roi:num('o-roi'), note:$('o-note').value||null,
     filled_by:ME.id, filled_at:new Date().toISOString()};
-  const {error}=await sb.from('outcomes').upsert(row,{onConflict:'candidate_id,checkpoint'});
+  const {error}=await sb.from('outcomes').upsert(row,{onConflict:'candidate_id,period_ym'});
   $('o-ok').textContent=error?('Не сохранилось: '+error.message):'Сохранено';
   setTimeout(()=>{if($('o-ok'))$('o-ok').textContent=''},3000);
   if(!error)loadOutcomes();
@@ -762,24 +782,28 @@ async function loadExport(){
   $('o-cnt').textContent=error?'':`строк: ${EXPORT.length}`;
   if(!EXPORT.length){$('o-table').innerHTML='<div class="muted">Пока нет заполненных результатов.</div>';return;}
   $('o-table').innerHTML=`<table class="list"><thead><tr>
-    <th>Кандидат</th><th>Период</th><th>Сеньор</th><th>Балл теста</th>
-    <th>Профит</th><th>ROI</th><th>Средний профит по руководителю</th><th>Против своих</th><th>Против всех</th></tr></thead><tbody>`+
+    <th>Кандидат</th><th>Месяц</th><th>Сеньор</th><th>Балл теста</th>
+    <th>Профит</th><th>ROI</th><th>Средний профит по руководителю</th>
+    <th>Место среди своих</th><th>Место среди всех</th></tr></thead><tbody>`+
     EXPORT.map(r=>`<tr>
       <td><b>${esc(r.full_name)}</b></td>
-      <td class="mono">${r.checkpoint} дн</td>
+      <td class="mono">${ymLabel(r.period_ym)}<div class="muted" style="font-size:12px">${r.month_no}-й${r.is_partial?' · неполный':''}</div></td>
       <td>${esc(r.senior||'—')}</td>
       <td class="mono">${r.test_score??'—'}</td>
-      <td class="mono">${r.profit!=null?'$'+Number(r.profit).toLocaleString('ru-RU'):'—'}</td>
-      <td class="mono">${r.roi!=null?r.roi+'%':'—'}</td>
+      <td class="mono">${r.profit!=null?
+        `<span style="color:${r.profit<0?'var(--fail)':'inherit'}">$${Number(r.profit).toLocaleString('ru-RU')}</span>`:'—'}</td>
+      <td class="mono">${r.roi!=null?
+        `<span style="color:${r.roi<0?'var(--fail)':'inherit'}">${r.roi}%</span>`:'—'}</td>
       <td class="mono">${r.avg_senior!=null?'$'+Number(r.avg_senior).toLocaleString('ru-RU')+
         (r.n_senior?` <span class="muted">(${r.n_senior})</span>`:''):'—'}</td>
-      <td class="mono">${r.ratio_to_senior!=null?
-        `<span style="color:${r.ratio_to_senior>=1?'var(--pass)':'var(--fail)'}">${r.ratio_to_senior}×</span>`
-        :'<span class="muted">мало данных</span>'}</td>
-      <td class="mono">${r.ratio_to_all!=null?
-        `<span style="color:${r.ratio_to_all>=1?'var(--pass)':'var(--fail)'}">${r.ratio_to_all}×</span>`:'—'}</td>
+      <td class="mono">${r.place_senior!=null?
+        `<span style="color:${r.place_senior===1?'var(--pass)':'inherit'}">${r.place_senior} из ${r.n_senior}</span>`
+        :'<span class="muted">один в группе</span>'}</td>
+      <td class="mono">${r.place_all!=null?
+        `<span style="color:${r.place_all===1?'var(--pass)':'inherit'}">${r.place_all} из ${r.n_all}</span>`
+        :'<span class="muted">—</span>'}</td>
     </tr>`).join('')+'</tbody></table>'+
-    '<div class="muted" style="margin-top:8px;font-size:12.5px">Считается само. <b>Средний профит по руководителю</b> — сколько в среднем делают его ассистенты за этот период, в скобках сколько человек в расчёте. <b>Против своих</b> — во сколько раз человек выше или ниже этого среднего, появляется от двух ассистентов у руководителя. <b>Против всех</b> — то же самое, но по всем ассистентам сразу, работает с первого человека. Больше 1 — выше среднего, меньше 1 — ниже.</div>';
+    '<div class="muted" style="margin-top:8px;font-size:12.5px">Считается само. <b>Средний профит по руководителю</b> — сколько в среднем делают его ассистенты за этот месяц работы, в скобках сколько человек в расчёте. <b>Место среди своих</b> — какое место человек занял среди ассистентов того же руководителя за тот же месяц работы. <b>Место среди всех</b> — то же по всем ассистентам сразу. Места появляются, когда в сравнении есть хотя бы двое.</div>';
 }
 
 $('o-export').onclick=()=>{
