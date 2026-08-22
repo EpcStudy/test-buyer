@@ -55,10 +55,6 @@ details.cheat .body{padding:0 18px 18px;border-top:1px solid var(--line-2)}
 .sec-time{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-2);border:1px solid var(--line);padding:3px 8px;margin-left:auto;white-space:nowrap}
 .sec-desc{color:var(--ink-2);font-size:14px;margin:10px 0 26px;max-width:66ch}
 .sec-desc b{color:var(--ink)}
-.item.miss{border-color:var(--fail);background:#FFF7F6;box-shadow:0 0 0 3px rgba(163,43,34,.08)}
-.miss-note{background:var(--fail-w);color:var(--fail);border-left:3px solid var(--fail);
- padding:12px 14px;border-radius:2px;margin-bottom:14px;font-size:14px;display:none}
-.miss-note.on{display:block}
 .item{background:var(--card);border:1px solid var(--line);border-radius:2px;padding:15px 17px;margin-bottom:11px}
 .item-n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-2);margin-bottom:8px}
 .q{font-size:14.5px;margin-bottom:11px}
@@ -153,6 +149,17 @@ footer{margin-top:70px;padding-top:16px;border-top:1px solid var(--line);font-fa
 @media print{.timerbar,button{display:none}}
 :focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---------- правки вёрстки: таймер по центру ---------- */
+.timerbar{display:grid;grid-template-columns:1fr auto 1fr;justify-content:unset}
+.timerbar .tcenter{grid-column:2;text-align:center;white-space:nowrap}
+.timerbar .tright{grid-column:3;text-align:right;display:flex;justify-content:flex-end;align-items:center;gap:10px}
+
+/* ---------- подсветка незаполненного ---------- */
+.item.miss{border-color:var(--fail);background:#FFF7F6;box-shadow:0 0 0 3px rgba(163,43,34,.08)}
+.miss-note{background:var(--fail-w);color:var(--fail);border-left:3px solid var(--fail);
+ padding:12px 14px;border-radius:2px;margin-bottom:14px;font-size:14px;display:none}
+.miss-note.on{display:block}
 </style>
 </head>
 <body class="locked">
@@ -199,13 +206,13 @@ footer{margin-top:70px;padding-top:16px;border-top:1px solid var(--line);font-fa
 <button id="gbtn">Начать тест</button>
 </div></div>
 
-<div class="timerbar" id="tbar"><span><span id="tlab">ОСТАЛОСЬ</span> · <b id="tval">85:00</b></span><span id="tnote" style="opacity:.7">тест не начат</span><button id="tbtn">Начать тест</button></div>
+<div class="timerbar" id="tbar"><span></span><span class="tcenter"><span id="tlab">ОСТАЛОСЬ</span> · <b id="tval">85:00</b></span><span class="tright"><span id="tnote" style="opacity:.7">(тест не начат)</span><button id="tbtn">Начать тест</button></span></div>
 
 <div class="wrap">
 <header class="top">
-  <div class="meta"><span>ТЕСТ ДЛЯ МЕДИАБАЕРОВ</span><span id="today"></span></div>
-  <h1>Отбор медиабаера</h1>
-  <div class="lede">Один заход, 85 минут, обратный отсчёт без пауз. Пересдачи нет. Опыт в арбитраже не требуется: всё, что нужно для расчётов, есть в шпаргалке ниже — она открыта всё время, пользуйтесь свободно. Искать ответы на стороне и спрашивать у ИИ не нужно и бессмысленно: половина блоков не имеет правильных ответов, а уходы со страницы фиксируются.</div>
+  <div class="meta"><span></span><span id="today"></span></div>
+  <h1>Тест на позицию Mediabuyer</h1>
+  <div class="lede">Один заход, 85 минут, обратный отсчёт без пауз. Пересдачи нет. Опыт в арбитраже не требуется: всё, что нужно для расчётов, есть в шпаргалке ниже — она открыта всё время, пользуйтесь свободно. Искать ответы на стороне и спрашивать у ИИ не нужно и бессмысленно: половина блоков не имеет правильных ответов.</div>
 
   <details class="cheat" open>
     <summary>Шпаргалка: метрики и формулы</summary>
@@ -224,8 +231,6 @@ footer{margin-top:70px;padding-top:16px;border-top:1px solid var(--line);font-fa
       <div><b>EPC</b> = выручка ÷ клики. Сколько приносит один клик</div>
       <div><b>Охват</b> — сколько разных людей увидели рекламу</div>
       <div><b>Частота</b> = показы ÷ охват. Сколько раз в среднем увидел один человек</div>
-      <div><b>Ребилл</b> — повторное списание по подписке</div>
-      <div><b>LTV</b> — сколько денег приносит один клиент за всё время</div>
       <div><b>Оффер</b> — продукт, который мы рекламируем, и условия оплаты за него</div>
       <div><b>Крео</b> — рекламный материал: картинка или видео с текстом</div>
       <div><b>Лендинг</b> — страница, куда человек попадает после клика</div>
@@ -310,7 +315,7 @@ footer{margin-top:70px;padding-top:16px;border-top:1px solid var(--line);font-fa
 <div class="miss-note" id="missNote"></div>
 <div class="submit-zone"><button class="go" id="go">Завершить тест</button><span class="hint">// незаполненное будет подсвечено</span></div>
 <div id="out"></div>
-<footer><span>тест для медиабаеров</span><span>практическая проба проводится отдельно</span></footer>
+<footer><span></span><span>После прохождения теста с вами свяжется HR для дальнейших действий</span></footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -443,7 +448,7 @@ const NUM=[
  {q:'CPA вырос на <code>25%</code>, затем упал на <code>20%</code>. На сколько процентов он отличается от исходного?',u:'%'},
  {q:'Бюджет <code>$300</code> в день, CPA <code>$24</code>, льём <code>6</code> дней. Сколько будет лидов?',u:'шт'},
  {q:'Охват <code>120 000</code>, частота <code>2.4</code>. Сколько было показов?',u:'шт'},
- {q:'Первый платёж <code>$59</code>, потом три ребилла по <code>$45</code>. До каждого следующего доходит <code>50%</code> оставшихся. Чему равен LTV?',u:'$'},
+ {q:'Кампания A: <code>3000</code> кликов, CR <code>2%</code>, выплата <code>$70</code>, CPC <code>$0.90</code>.<br>Кампания B: <code>1800</code> кликов, CR <code>3.5%</code>, выплата <code>$50</code>, CPC <code>$0.75</code>.<br>На сколько долларов прибыль B больше прибыли A?',u:'$'},
  {q:'CPA вырос с <code>$25</code> до <code>$35</code>. На сколько процентов надо поднять CR, чтобы вернуть CPA к <code>$25</code>?',u:'%'},
  {q:'Три источника дали <code>95</code>, <code>140</code> и <code>65</code> конверсий. Средний CPA — <code>$27</code>. Сколько всего потрачено?',u:'$'}];
 const LOG=[
@@ -456,7 +461,7 @@ const LOG=[
  {q:'Половина крео проходит модерацию. Треть прошедших даёт конверсии. Сколько крео отправить, чтобы получить 4 конвертящих?',o:['12','18','24','36']},
  {q:'Рост частоты всегда снижает CTR, а снижение CTR всегда поднимает CPC. Что верно?',o:['Рост частоты поднимает CPC','Рост CPC поднимает частоту','Снижение частоты снижает CPC','Не связаны']},
  {q:'A больше B. C меньше B. D больше A. Кто наименьший?',o:['A','B','C','Определить нельзя']},
- {q:'Лишнее: показ, клик, конверсия, ребилл, крео',o:['показ','конверсия','ребилл','крео']}];
+ {q:'Лишнее: показ, клик, заявка, оплата, крео',o:['показ','заявка','оплата','крео']}];
 const TR=[
  {q:'Конверсия <code>3%</code>, выплата <code>$60</code>, клик <code>$0.75</code>, частота <code>1.4</code>. Чему равна сила?',t:'n'},
  {q:'Конверсия <code>2%</code>, выплата <code>$70</code>, клик <code>$0.60</code>, частота <code>2.9</code>. Какой цвет?',t:'m',o:['Зелёный','Жёлтый','Красный','Данных не хватает']},
@@ -695,14 +700,14 @@ async function startTest(){
   if(left>0){
    $('tlab').textContent='ОСТАЛОСЬ';
    $('tval').textContent=fmt(left);
-   $('tnote').textContent=left>600?'паузы нет':'время заканчивается';
+   $('tnote').textContent=left>600?'(паузы нет)':'(время заканчивается)';
    bar.classList.toggle('warn',left<=600&&left>300);
    bar.classList.toggle('over',left<=300);
   } else {
    overSec=-left;
    $('tlab').textContent='ПРЕВЫШЕНИЕ';
    $('tval').textContent='+'+fmt(overSec);
-   $('tnote').textContent='норматив истёк, можно продолжать';
+   $('tnote').textContent='(норматив истёк, можно продолжать)';
    bar.classList.remove('warn');bar.classList.add('over');
   }
  },1000);

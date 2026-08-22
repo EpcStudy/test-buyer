@@ -24,7 +24,6 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-
 .mono{font-family:'JetBrains Mono',monospace}
 .hide{display:none!important}
 
-/* top bar */
 header.bar{background:var(--ink);color:#fff;padding:0 22px;display:flex;align-items:center;gap:20px;height:54px;position:sticky;top:0;z-index:20}
 header.bar .logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:16px;letter-spacing:-.01em}
 header.bar nav{display:flex;gap:2px;margin-left:8px}
@@ -38,7 +37,6 @@ header.bar .who button{background:none;border:1px solid rgba(255,255,255,.3);col
 h1.page{font-family:'Bricolage Grotesque',sans-serif;font-size:24px;font-weight:700;margin:0 0 4px;letter-spacing:-.01em}
 .sub{color:var(--ink-2);font-size:13.5px;margin-bottom:20px}
 
-/* login */
 #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
 #login .box{width:100%;max-width:360px}
 #login h1{font-family:'Bricolage Grotesque',sans-serif;font-size:28px;font-weight:800;margin:0 0 6px;letter-spacing:-.02em}
@@ -51,11 +49,9 @@ button.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line
 button.ghost:hover{border-color:var(--ink)}
 .err{color:var(--fail);font-size:13px;margin-top:10px;min-height:18px}
 
-/* toolbar */
 .tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
 .tools input,.tools select{width:auto;min-width:150px}
 
-/* table */
 table.list{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:4px;overflow:hidden}
 table.list th{background:var(--ink);color:#fff;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:9px 12px;font-weight:500}
 table.list td{border-top:1px solid var(--line-2);padding:11px 12px;vertical-align:middle}
@@ -66,12 +62,9 @@ table.list tr.row:hover td{background:#F8FAFB;cursor:pointer}
 .pill.a{background:var(--warn-w);color:var(--warn)}
 .pill.n{background:var(--line-2);color:var(--ink-2)}
 .score{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.02em}
-
-/* spine: compact 6-bar signature */
 .spine{display:flex;gap:2px;align-items:flex-end;height:22px}
 .spine i{width:6px;background:var(--line);border-radius:1px;display:block}
 
-/* card */
 .cardbox{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:20px 22px;margin-bottom:14px}
 .cardbox h3{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;margin:0 0 14px}
 .hd{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
@@ -105,11 +98,6 @@ table.list tr.row:hover td{background:#F8FAFB;cursor:pointer}
 .quote{background:var(--paper);border-radius:3px;padding:12px 14px;margin:8px 0 14px;font-size:14px;line-height:1.6;white-space:pre-wrap}
 .lbl{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:5px}
 
-.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.tags label{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:3px;padding:6px 10px;font-size:13px;background:var(--card);cursor:pointer}
-.tags label.on{border-color:var(--accent);background:var(--accent-w);color:var(--accent)}
-.tags input{width:auto}
-
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:820px){.grid2{grid-template-columns:1fr}.mrow .n{width:96px}}
 
@@ -117,6 +105,14 @@ table.list tr.row:hover td{background:#F8FAFB;cursor:pointer}
 .linkbox .u{font-family:'JetBrains Mono',monospace;font-size:12px;word-break:break-all;background:var(--card);padding:9px;border-radius:3px;margin:8px 0}
 .muted{color:var(--ink-2);font-size:13px}
 .empty{text-align:center;padding:50px 20px;color:var(--ink-2)}
+
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tags label{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:3px;padding:6px 10px;font-size:13px;background:var(--card);cursor:pointer}
+.tags label.on{border-color:var(--accent);background:var(--accent-w);color:var(--accent)}
+.tags input{width:auto}
+.anglelist{font-size:13.5px;margin:8px 0 0;padding-left:20px}
+.anglelist li{margin-bottom:3px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -331,11 +327,14 @@ const ASQ_Q=['Кампания потратила $1500 и не дала ни о
  'Руководитель раскритиковал работу при команде',
  'Не выполнил месячный план'];
 const METRICS=[
- ['cog','Счёт и логика',25,'Считает уверенно, с юнит-экономикой проблем не будет','Со счётом тяжело: юнит-экономика будет даваться с трудом'],
- ['learn','Обучаемость',25,'Обучается легко: новое схватывает с первого объяснения и перестраивается, когда правила меняются','Обучается тяжело: усваивает формулировки, но не перестраивается при смене правил'],
- ['adapt','Работа с чужим опытом',19,'Понимает, что связки не изобретают с нуля и не копируют один в один, а разбирают чужое и делают свои версии','Тянет либо в копирование один в один, либо в изобретательство с нуля'],
- ['sig','Осторожность с выводами',17,'Не бросается принимать решения на десяти кликах, готов сказать «данных мало»','Готов принимать решения на недостаточных данных — прямой риск для бюджета'],
- ['optim','Устойчивость к неудачам',14,'После серии сливов не опустит руки: воспринимает провалы как поправимые','Провалы воспринимает как постоянные и всеохватные — риск ухода после серии неудач']
+ ['cog','Счёт и логика',40,'Считает уверенно, с юнит-экономикой проблем не будет','Со счётом тяжело: юнит-экономика будет даваться с трудом'],
+ ['learn','Обучаемость',40,'Обучается легко: новое схватывает с первого объяснения и перестраивается, когда правила меняются','Обучается тяжело: усваивает формулировки, но не перестраивается при смене правил'],
+ ['optim','Устойчивость к неудачам',20,'После серии сливов не опустит руки: воспринимает провалы как поправимые','Провалы воспринимает как постоянные и всеохватные — риск ухода после серии неудач']
+];
+// эти блоки в тесте остались, но на балл не влияют — материал для интервью
+const EXTRA=[
+ ['adapt','Работа с чужим опытом','Понимает, что связки разбирают и адаптируют, а не копируют и не изобретают','Тянет либо в копирование один в один, либо в изобретательство с нуля'],
+ ['sig','Осторожность с выводами','Не бросается принимать решения на малых данных','Готов решать на недостаточных данных']
 ];
 const col=v=>v>=70?'#1F6B4E':v>=50?'#8A6100':'#A32B22';
 
@@ -501,7 +500,7 @@ function renderCard(c,a,ans){
   const hooks=ans.filter(x=>x.block==='hooks');
   const causes=ans.filter(x=>x.block==='asq'&&x.item_key.startsWith('cause'));
   const open=ans.filter(x=>x.block==='open');
-  const vals={cog:sc.cog,learn:sc.learn,adapt:sc.adapt,sig:sc.sig,optim:sc.optim};
+  const vals={cog:sc.cog,learn:sc.learn,optim:sc.optim};
 
   $('v-card').innerHTML=`${back}
 
@@ -524,10 +523,21 @@ function renderCard(c,a,ans){
   <div class="cardbox">
     <h3>Из чего сложился балл</h3>
     ${METRICS.map(([k,n,w,good,bad])=>{const v=Math.round((vals[k]??0)*100);
-      return `<div class="metric"><div class="top"><span class="nm">${n}</span><span class="vl">${v}</span></div>
+      return `<div class="metric"><div class="top"><span class="nm">${n} <span class="muted" style="font-weight:400">(${w}%)</span></span><span class="vl">${v}</span></div>
       <div class="track"><i style="width:${v}%;background:${col(v)}"></i></div>
       <div class="cm">${v>=55?good:bad}</div></div>`}).join('')}
-    <div class="muted" style="margin-top:12px;font-size:12.5px">Шкала 0–100. Ниже 50 — слабая зона, выше 70 — сильная.</div>
+    <div class="muted" style="margin-top:12px;font-size:12.5px">Шкала 0–100. Ниже 50 — слабая зона, выше 70 — сильная. В скобках — вес в итоговом балле.</div>
+  </div>
+
+  <div class="cardbox">
+    <h3>Есть в тесте, но на балл не влияет</h3>
+    <div class="muted" style="margin-bottom:10px">Эти блоки кандидат проходил, но их результат не участвует в оценке — это материал для разговора на интервью.</div>
+    ${EXTRA.map(([k,n,good,bad])=>{const v=Math.round((sc[k]??0)*100);
+      return `<div class="metric"><div class="top"><span class="nm">${n}</span><span class="vl">${v}</span></div>
+      <div class="track"><i style="width:${v}%;background:#B9BEC6"></i></div>
+      <div class="cm">${v>=55?good:bad}</div></div>`}).join('')}
+    <div class="metric"><div class="top"><span class="nm">Хуки</span><span class="vl">${sc.gen_count??0}</span></div>
+      <div class="cm">Сколько вариантов написал. Само по себе не оценка — но показывает, сколько человек вложил туда, где мог схалтурить.</div></div>
   </div>
 
   <div class="cardbox">
@@ -601,8 +611,7 @@ function renderCard(c,a,ans){
 }
 
 function composite(sc){
-  return Math.round(100*((sc.cog||0)*.25+(sc.learn||0)*.25+(sc.adapt||0)*.19+
-    (sc.sig||0)*.17+(sc.optim||0)*.14));
+  return Math.round(100*((sc.cog||0)*.40+(sc.learn||0)*.40+(sc.optim||0)*.20));
 }
 
 function summary(v,dom,sec,a){
