@@ -144,6 +144,7 @@ table.list tr.row:hover td{background:#F8FAFB;cursor:pointer}
       <button data-v="list" class="on">Кандидаты</button>
       <button data-v="new">Добавить</button>
       <button data-v="stats">Источники</button>
+      <button data-v="out">Результаты</button>
       <button data-v="users" id="nav-users" class="hide">Команда</button>
     </nav>
     <span class="who"><span id="me"></span><button id="out">Выйти</button></span>
@@ -190,6 +191,57 @@ table.list tr.row:hover td{background:#F8FAFB;cursor:pointer}
           <div class="u" id="n-url"></div>
           <button class="ghost" id="n-copy">Скопировать</button>
         </div>
+      </div>
+    </div>
+
+    <!-- результаты -->
+    <div id="v-out" class="hide">
+      <h1 class="page">Результаты в работе</h1>
+      <p class="sub">Балл теста против фактических цифр через 30, 60 и 90 дней. Ради этого всё и собиралось.</p>
+
+      <div class="cardbox" style="margin-bottom:16px">
+        <h3>Ждут заполнения</h3>
+        <div id="due-body"></div>
+      </div>
+
+      <div class="tools" style="margin-bottom:14px">
+        <select id="o-cand" style="min-width:220px"></select>
+        <select id="o-cp" style="width:auto">
+          <option value="30">30 дней</option><option value="60">60 дней</option>
+          <option value="90">90 дней</option><option value="120">120 дней</option></select>
+        <button class="ghost" id="o-load">Открыть</button>
+      </div>
+
+      <div class="cardbox hide" id="o-form">
+        <h3 id="o-title"></h3>
+        <div class="grid2">
+          <div>
+            <div class="lbl">Сеньор</div>
+            <div style="display:flex;gap:6px">
+              <select id="o-senior" style="flex:1"></select>
+              <button class="ghost" id="o-senior-add" title="добавить сеньора" style="padding:9px 14px">+</button>
+            </div>
+            <div id="o-senior-new" class="hide" style="display:flex;gap:6px;margin-top:8px">
+              <input id="o-senior-name" placeholder="Имя сеньора" style="flex:1">
+              <button class="ghost" id="o-senior-save" style="padding:9px 14px">Добавить</button>
+            </div>
+          </div>
+          <div><div class="lbl">Профит за период, $</div><input id="o-profit" type="number" step="1"></div>
+          <div><div class="lbl">ROI за период, %</div><input id="o-roi" type="number" step="1"></div>
+        </div>
+        <textarea id="o-note" rows="3" placeholder="Комментарий, если есть что добавить" style="margin-top:12px"></textarea>
+        <div class="tools" style="margin-top:12px">
+          <button class="primary" id="o-save" style="width:auto">Сохранить</button>
+          <span class="muted" id="o-ok"></span>
+        </div>
+      </div>
+
+      <div style="margin-top:22px">
+        <div class="tools">
+          <button class="ghost" id="o-export">Выгрузить всё в таблицу</button>
+          <span class="muted" id="o-cnt"></span>
+        </div>
+        <div id="o-table" style="margin-top:12px"></div>
       </div>
     </div>
 
@@ -331,9 +383,10 @@ async function init(){
 document.querySelectorAll('header.bar nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
 function show(v){
   document.querySelectorAll('header.bar nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
-  ['list','card','new','stats','users'].forEach(x=>$('v-'+x).classList.toggle('hide',x!==v));
+  ['list','card','new','stats','users','out'].forEach(x=>$('v-'+x).classList.toggle('hide',x!==v));
   if(v==='stats')loadStats();
   if(v==='users')loadUsers();
+  if(v==='out')loadOutcomes();
   if(v==='list')loadList();
 }
 
@@ -583,6 +636,14 @@ function notesBox(c){
     <span class="muted" id="d-ok"></span>
   </div>
   <textarea id="d-notes" rows="4" placeholder="Что выяснилось на созвоне, впечатление, договорённости…">${esc(c.notes||'')}</textarea>
+  <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line-2)">
+    <div class="lbl">Дата выхода на работу</div>
+    <div class="tools" style="margin:6px 0 0">
+      <input type="date" id="d-hired" value="${c.hired_at||''}" style="width:auto">
+      <button class="ghost" id="d-hired-save">Сохранить</button>
+      <span class="muted" style="font-size:12.5px">после этого система начнёт напоминать про результаты на 30, 60 и 90 дней</span>
+    </div>
+  </div>
   <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line-2);display:flex;gap:8px;flex-wrap:wrap">
     <button class="ghost" id="d-hide">${c.hidden?'Вернуть в список':'Скрыть из списка'}</button>
     ${admin?`<button class="ghost" id="d-del" style="color:var(--fail);border-color:var(--fail)">Удалить насовсем</button>`:''}
@@ -602,6 +663,12 @@ function bindNotes(c){
     $('d-ok').textContent=error?'Не сохранилось':'Сохранено';
     setTimeout(()=>{if($('d-ok'))$('d-ok').textContent=''},2500);
   };
+  if($('d-hired-save'))$('d-hired-save').onclick=async()=>{
+    const v=$('d-hired').value||null;
+    await sb.from('candidates').update({hired_at:v}).eq('id',c.id);
+    $('d-ok').textContent='Дата сохранена';
+    setTimeout(()=>{if($('d-ok'))$('d-ok').textContent=''},2500);
+  };
   $('d-hide').onclick=async()=>{
     if(!c.hidden && !confirm('Скрыть кандидата из списка?\n\nДанные сохранятся, вернуть можно в любой момент.'))return;
     await sb.from('candidates').update({hidden:!c.hidden}).eq('id',c.id);
@@ -614,6 +681,107 @@ function bindNotes(c){
     await loadList(); show('list');
   };
 }
+
+/* ---------- результаты ---------- */
+let SENIORS=[], EXPORT=[];
+
+async function loadOutcomes(){
+  const {data:sr}=await sb.from('seniors').select('*').eq('is_active',true).order('name');
+  SENIORS=sr||[];
+  $('o-senior').innerHTML='<option value="">—</option>'+SENIORS.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
+
+  const {data:cands}=await sb.from('candidates').select('id,full_name,hired_at')
+    .not('hired_at','is',null).eq('hidden',false).order('hired_at',{ascending:false});
+  $('o-cand').innerHTML=(cands||[]).length
+    ? (cands||[]).map(c=>`<option value="${c.id}">${esc(c.full_name)} · с ${c.hired_at}</option>`).join('')
+    : '<option value="">нет вышедших на работу</option>';
+
+  const {data:due}=await sb.from('outcomes_due').select('*');
+  $('due-body').innerHTML=(due||[]).length
+    ? (due||[]).map(d=>`<div class="kv"><span class="k">${esc(d.full_name)}</span>
+       <span class="v">${d.checkpoint} дней · с ${d.due_date}</span></div>`).join('')
+    : '<div class="muted">Всё заполнено.</div>';
+
+  loadExport();
+}
+
+$('o-load').onclick=async()=>{
+  const cid=$('o-cand').value, cp=+$('o-cp').value;
+  if(!cid)return;
+  const name=$('o-cand').selectedOptions[0].textContent.split(' · ')[0];
+  $('o-title').textContent=`${name} — ${cp} дней`;
+  const {data}=await sb.from('outcomes').select('*').eq('candidate_id',cid).eq('checkpoint',cp).maybeSingle();
+  $('o-senior').value=data?.senior_id||'';
+  $('o-profit').value=data?.profit??'';
+  $('o-roi').value=data?.roi??'';
+  $('o-note').value=data?.note||'';
+  $('o-form').classList.remove('hide');
+};
+
+$('o-senior-add').onclick=()=>{$('o-senior-new').classList.toggle('hide');$('o-senior-name').focus();};
+$('o-senior-save').onclick=async()=>{
+  const name=$('o-senior-name').value.trim();
+  if(name.length<2)return;
+  const {data,error}=await sb.from('seniors').insert({name}).select().single();
+  if(error){alert('Не удалось добавить: '+error.message);return;}
+  SENIORS.push(data);
+  $('o-senior').innerHTML='<option value="">—</option>'+SENIORS.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
+  $('o-senior').value=data.id;
+  $('o-senior-name').value=''; $('o-senior-new').classList.add('hide');
+};
+$('o-senior-name').addEventListener('keydown',e=>{if(e.key==='Enter')$('o-senior-save').click()});
+
+$('o-save').onclick=async()=>{
+  const cid=$('o-cand').value, cp=+$('o-cp').value;
+  const num=id=>{const v=$(id).value.trim();return v===''?null:Number(v);};
+  const row={candidate_id:cid, checkpoint:cp,
+    senior_id:$('o-senior').value||null,
+    profit:num('o-profit'), roi:num('o-roi'), note:$('o-note').value||null,
+    filled_by:ME.id, filled_at:new Date().toISOString()};
+  const {error}=await sb.from('outcomes').upsert(row,{onConflict:'candidate_id,checkpoint'});
+  $('o-ok').textContent=error?('Не сохранилось: '+error.message):'Сохранено';
+  setTimeout(()=>{if($('o-ok'))$('o-ok').textContent=''},3000);
+  if(!error)loadOutcomes();
+};
+
+async function loadExport(){
+  const {data,error}=await sb.from('analysis_export').select('*');
+  EXPORT=data||[];
+  $('o-cnt').textContent=error?'':`строк: ${EXPORT.length}`;
+  if(!EXPORT.length){$('o-table').innerHTML='<div class="muted">Пока нет заполненных результатов.</div>';return;}
+  $('o-table').innerHTML=`<table class="list"><thead><tr>
+    <th>Кандидат</th><th>Период</th><th>Сеньор</th><th>Балл теста</th>
+    <th>Профит</th><th>ROI</th><th>Средний профит по руководителю</th><th>Против своих</th><th>Против всех</th></tr></thead><tbody>`+
+    EXPORT.map(r=>`<tr>
+      <td><b>${esc(r.full_name)}</b></td>
+      <td class="mono">${r.checkpoint} дн</td>
+      <td>${esc(r.senior||'—')}</td>
+      <td class="mono">${r.test_score??'—'}</td>
+      <td class="mono">${r.profit!=null?'$'+Number(r.profit).toLocaleString('ru-RU'):'—'}</td>
+      <td class="mono">${r.roi!=null?r.roi+'%':'—'}</td>
+      <td class="mono">${r.avg_senior!=null?'$'+Number(r.avg_senior).toLocaleString('ru-RU')+
+        (r.n_senior?` <span class="muted">(${r.n_senior})</span>`:''):'—'}</td>
+      <td class="mono">${r.ratio_to_senior!=null?
+        `<span style="color:${r.ratio_to_senior>=1?'var(--pass)':'var(--fail)'}">${r.ratio_to_senior}×</span>`
+        :'<span class="muted">мало данных</span>'}</td>
+      <td class="mono">${r.ratio_to_all!=null?
+        `<span style="color:${r.ratio_to_all>=1?'var(--pass)':'var(--fail)'}">${r.ratio_to_all}×</span>`:'—'}</td>
+    </tr>`).join('')+'</tbody></table>'+
+    '<div class="muted" style="margin-top:8px;font-size:12.5px">Считается само. <b>Средний профит по руководителю</b> — сколько в среднем делают его ассистенты за этот период, в скобках сколько человек в расчёте. <b>Против своих</b> — во сколько раз человек выше или ниже этого среднего, появляется от двух ассистентов у руководителя. <b>Против всех</b> — то же самое, но по всем ассистентам сразу, работает с первого человека. Больше 1 — выше среднего, меньше 1 — ниже.</div>';
+}
+
+$('o-export').onclick=()=>{
+  if(!EXPORT.length){alert('Пока нечего выгружать.');return;}
+  const cols=Object.keys(EXPORT[0]);
+  const esc2=v=>{if(v==null)return'';const s=typeof v==='object'?JSON.stringify(v):String(v);
+    return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
+  const csv=[cols.join(',')].concat(EXPORT.map(r=>cols.map(c=>esc2(r[c])).join(','))).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='результаты-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+};
 
 /* ---------- команда ---------- */
 const ROLES={recruiter:'Рекрутер',hrd:'HRD',founder:'Founder'};
