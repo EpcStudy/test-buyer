@@ -56,6 +56,7 @@ button.ghost:hover{border-color:var(--ink)}
 table.list{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:4px;overflow:hidden}
 table.list th{background:var(--ink);color:#fff;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:9px 12px;font-weight:500}
 table.list td{border-top:1px solid var(--line-2);padding:11px 12px;vertical-align:middle}
+table.list td.top{vertical-align:top}
 table.list tr.row:hover td{background:#F8FAFB;cursor:pointer}
 .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;padding:3px 8px;border-radius:3px;white-space:nowrap}
 .pill.g{background:var(--pass-w);color:var(--pass)}
@@ -65,6 +66,10 @@ table.list tr.row:hover td{background:#F8FAFB;cursor:pointer}
 .score{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.02em}
 .spine{display:flex;gap:2px;align-items:flex-end;height:22px}
 .spine i{width:6px;background:var(--line);border-radius:1px;display:block}
+#o-table table.list td{vertical-align:top}
+#o-table table.list th{vertical-align:bottom}
+.mrk{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11.5px;color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.mrk input[type=checkbox]{width:auto;height:auto;margin:0}
 
 .cardbox{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:20px 22px;margin-bottom:14px}
 .cardbox h3{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;margin:0 0 14px}
@@ -692,36 +697,46 @@ async function loadOutcomes(){
     $('o-table').innerHTML='<div class="empty">Пока никого. Кандидат попадает сюда, когда в его карточке выбрано решение «Работает ассистентом».</div>';
     return;
   }
-  const cell=(id,m,f,v)=>`<input class="oc" data-id="${id}" data-m="${m}" data-f="${f}"
-     value="${v??''}" inputmode="decimal" style="width:92px;text-align:right;padding:6px 8px">`;
+  const cell=(id,m,f,v)=>{
+    const col = v==null||v==='' ? 'inherit' : (Number(v)<0 ? 'var(--fail)' : 'var(--pass)');
+    return `<input class="oc" data-id="${id}" data-m="${m}" data-f="${f}"
+     value="${v??''}" inputmode="decimal"
+     style="width:92px;text-align:right;padding:6px 8px;color:${col};font-weight:${v==null?'400':'600'}">`;};
+
+  const partialCell=(r)=>`
+    <label class="mrk"><input type="checkbox" class="ocp" data-id="${r.id}" ${r.partial1?'checked':''}>неполный</label>
+    <div class="ocd-wrap ${r.partial1?'':'hide'}" style="margin-top:4px">
+      <input class="ocd" data-id="${r.id}" value="${r.d1??''}" inputmode="numeric" placeholder="дней"
+        style="width:92px;text-align:right;padding:4px 8px;font-size:13px">
+    </div>`;
 
   $('o-table').innerHTML=`<table class="list"><thead><tr>
     <th>Кандидат</th><th>Балл</th><th>Руководитель</th>
     <th colspan="2">1-й месяц</th><th colspan="2">2-й месяц</th>
-    <th colspan="2">3-й месяц</th><th colspan="2">4-й месяц</th><th>Итог</th></tr>
+    <th colspan="2">3-й месяц</th><th colspan="2">4-й месяц</th><th rowspan="2" style="vertical-align:bottom">Итог (средний)</th></tr>
     <tr><th></th><th></th><th></th>
     <th>профит</th><th>ROI</th><th>профит</th><th>ROI</th>
-    <th>профит</th><th>ROI</th><th>профит</th><th>ROI</th><th>средний</th></tr></thead><tbody>`+
+    <th>профит</th><th>ROI</th><th>профит</th><th>ROI</th></tr></thead><tbody>`+
    ROWSOUT.map(r=>`<tr>
-     <td><b>${esc(r.full_name)}</b></td>
-     <td class="mono">${r.test_score??'—'}</td>
-     <td>${esc(r.senior||'—')}</td>
-     <td>${cell(r.id,1,'profit',r.p1)}</td>
-     <td>${cell(r.id,1,'roi',r.r1)}
-       <div><label style="font-size:11.5px;color:var(--ink-2);display:flex;align-items:center;gap:5px;margin-top:4px;cursor:pointer">
-       <input type="checkbox" class="ocp" data-id="${r.id}" ${r.partial1?'checked':''} style="width:auto">неполный</label></div></td>
-     <td>${cell(r.id,2,'profit',r.p2)}</td><td>${cell(r.id,2,'roi',r.r2)}</td>
-     <td>${cell(r.id,3,'profit',r.p3)}</td><td>${cell(r.id,3,'roi',r.r3)}</td>
-     <td>${cell(r.id,4,'profit',r.p4)}</td><td>${cell(r.id,4,'roi',r.r4)}</td>
-     <td class="mono">${r.avg_profit!=null?
-        `<span style="color:${r.avg_profit<0?'var(--fail)':'inherit'}">$${Number(r.avg_profit).toLocaleString('ru-RU')}</span>
-         <span class="muted">/</span> <span style="color:${r.avg_roi<0?'var(--fail)':'inherit'}">${r.avg_roi??'—'}%</span>
+     <td class="top"><b>${esc(r.full_name)}</b></td>
+     <td class="mono top">${r.test_score??'—'}</td>
+     <td class="top">${esc(r.senior||'—')}</td>
+     <td class="top">${cell(r.id,1,'profit',r.p1)}${partialCell(r)}</td>
+     <td class="top">${cell(r.id,1,'roi',r.r1)}</td>
+     <td class="top">${cell(r.id,2,'profit',r.p2)}</td><td class="top">${cell(r.id,2,'roi',r.r2)}</td>
+     <td class="top">${cell(r.id,3,'profit',r.p3)}</td><td class="top">${cell(r.id,3,'roi',r.r3)}</td>
+     <td class="top">${cell(r.id,4,'profit',r.p4)}</td><td class="top">${cell(r.id,4,'roi',r.r4)}</td>
+     <td class="mono top" style="white-space:nowrap">${r.avg_profit!=null?
+        `<div style="color:${r.avg_profit<0?'var(--fail)':'var(--pass)'};font-weight:600">$${Number(r.avg_profit).toLocaleString('ru-RU')}</div>
+         <div style="color:${r.avg_roi<0?'var(--fail)':'var(--pass)'}">${r.avg_roi??'—'}%</div>
          <div class="muted" style="font-size:11.5px">за ${r.months_filled} мес</div>`:'<span class="muted">—</span>'}</td>
    </tr>`).join('')+'</tbody></table>'+
-   '<div class="muted" style="margin-top:10px;font-size:12.5px">Итог — среднее по заполненным месяцам: профит и ROI. Пометка «неполный» ставится, если первый месяц человек отработал не целиком, — тогда его цифры читаются с поправкой.</div>';
+   '<div class="muted" style="margin-top:10px;font-size:12.5px">Итог — среднее по заполненным месяцам: профит и ROI. Пометка «неполный» ставится, если первый месяц человек отработал не целиком. Рядом можно вписать, сколько дней он отработал — тогда понятно, насколько его цифры занижены.</div>';
 
   document.querySelectorAll('.oc').forEach(el=>{el.onchange=saveCell;el.onblur=saveCell;});
   document.querySelectorAll('.ocp').forEach(el=>el.onchange=savePartial);
+  document.querySelectorAll('.ocd').forEach(el=>{el.onchange=saveDays;el.onblur=saveDays;});
+  document.querySelectorAll('.ocd').forEach(el=>{el.onchange=saveDays;el.onblur=saveDays;});
 }
 
 async function saveCell(e){
@@ -736,8 +751,19 @@ async function saveCell(e){
 
 async function savePartial(e){
   const el=e.target;
-  await sb.from('outcomes').upsert({candidate_id:el.dataset.id, month_no:1,
-    is_partial:el.checked, filled_by:ME.id},{onConflict:'candidate_id,month_no'});
+  const days=el.closest('div').querySelector('.ocd');
+  if(days)days.classList.toggle('hide',!el.checked);
+  const row={candidate_id:el.dataset.id, month_no:1, is_partial:el.checked, filled_by:ME.id};
+  if(!el.checked)row.days_worked=null;
+  await sb.from('outcomes').upsert(row,{onConflict:'candidate_id,month_no'});
+}
+
+async function saveDays(e){
+  const el=e.target, v=el.value.trim();
+  const {error}=await sb.from('outcomes').upsert({candidate_id:el.dataset.id, month_no:1,
+    days_worked: v===''?null:Number(v), filled_by:ME.id},{onConflict:'candidate_id,month_no'});
+  el.style.borderColor=error?'var(--fail)':'var(--pass)';
+  setTimeout(()=>el.style.borderColor='',1200);
 }
 
 $('o-export').onclick=async()=>{
