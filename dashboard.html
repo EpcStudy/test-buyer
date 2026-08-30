@@ -301,10 +301,6 @@ const METRICS=[
  ['optim','Устойчивость к неудачам',20,'После серии сливов не опустит руки: воспринимает провалы как поправимые','Провалы воспринимает как постоянные и всеохватные — риск ухода после серии неудач']
 ];
 // эти блоки в тесте остались, но на балл не влияют — материал для интервью
-const EXTRA=[
- ['adapt','Работа с чужим опытом','Понимает, что связки разбирают и адаптируют, а не копируют и не изобретают','Тянет либо в копирование один в один, либо в изобретательство с нуля'],
- ['sig','Осторожность с выводами','Не бросается принимать решения на малых данных','Готов решать на недостаточных данных']
-];
 const col=v=>v>=70?'#1F6B4E':v>=50?'#8A6100':'#A32B22';
 
 /* ---------- вход ---------- */
@@ -499,19 +495,8 @@ function renderCard(c,a,ans){
   </div>
 
   <div class="cardbox">
-    <h3>Есть в тесте, но на балл не влияет</h3>
-    <div class="muted" style="margin-bottom:10px">Эти блоки кандидат проходил, но их результат не участвует в оценке — это материал для разговора на интервью.</div>
-    ${EXTRA.map(([k,n,good,bad])=>{const v=Math.round((sc[k]??0)*100);
-      return `<div class="metric"><div class="top"><span class="nm">${n}</span><span class="vl">${v}</span></div>
-      <div class="track"><i style="width:${v}%;background:#B9BEC6"></i></div>
-      <div class="cm">${v>=55?good:bad}</div></div>`}).join('')}
-    <div class="metric"><div class="top"><span class="nm">Хуки</span><span class="vl">${sc.gen_count??0}</span></div>
-      <div class="cm">Сколько вариантов написал. Само по себе не оценка — но показывает, сколько человек вложил туда, где мог схалтурить.</div></div>
-  </div>
-
-  <div class="cardbox">
     <h3>Как объясняет свои неудачи</h3>
-    <div class="muted" style="margin-bottom:10px">Кандидату дали шесть провальных ситуаций и попросили назвать причину. Оценки внизу посчитаны автоматически — отмечать ничего не нужно.</div>
+    <div class="muted" style="margin-bottom:10px">Кандидату дали восемь провальных ситуаций и попросили назвать причину. Оценки внизу посчитаны автоматически — отмечать ничего не нужно.</div>
     ${ASQ_Q.map((q,i)=>{const v=(causes.find(x=>x.item_key==='cause'+i)||{}).value;
       return `<div class="metric"><div class="lbl" style="margin-bottom:4px">${q}</div>
       <div style="font-size:14.5px">${v?'«'+esc(v)+'»':'<span class="muted">не ответил</span>'}</div></div>`}).join('')}
@@ -555,8 +540,8 @@ function renderCard(c,a,ans){
     <h3>Детализация по блокам</h3>
     ${[['Счёт',`${b.num??'—'} из 12`,tel.block_times?.num],
        ['Логика',`${b.log??'—'} из 10`,tel.block_times?.log],
-       ['Новые правила',`${b.tr??'—'} из 8`,tel.block_times?.tr],
-       ['Смена правил',`${b.am??'—'} из 4`,tel.block_times?.am],
+       ['Новые правила',`${b.tr??'—'} из 10`,tel.block_times?.tr],
+       ['Смена правил',`${b.am??'—'} из 8`,tel.block_times?.am],
        ['Осторожность',`${b.sig??'—'} из 10`,tel.block_times?.sig],
        ['Чужой опыт',`${b.adapt??'—'} из 8`,tel.block_times?.ad]]
       .map(([n,r,t])=>`<div class="kv"><span class="k">${n}</span><span class="v">${r}${t?' · '+t+' мин':''}</span></div>`).join('')}
