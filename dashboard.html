@@ -464,6 +464,7 @@ function renderCard(c,a,ans){
   const motiv=Object.entries(sc.motiv||{}).sort((x,y)=>y[1]-x[1]);
   const eng=Object.entries(sc.engage||{}).sort((x,y)=>y[1]-x[1]);
   const dom=motiv[0]?.[0], sec=motiv[1]?.[0];
+  const chk=Object.entries(sc.check||{}).sort((x,y)=>y[1]-x[1])[0]?.[0]; // тип, которому в контрольном вопросе поставили 5
   const hooks=ans.filter(x=>x.block==='hooks');
   const causes=ans.filter(x=>x.block==='asq'&&x.item_key.startsWith('cause'));
   const open=ans.filter(x=>x.block==='open');
@@ -531,6 +532,9 @@ function renderCard(c,a,ans){
     <div style="margin-top:12px;font-size:13.5px;line-height:1.6">
       <div><b>Ведущий: ${TYPE[dom]}.</b> ${TYPE_DESC[dom]||''}</div>
       <div style="margin-top:6px"><b>Второй: ${TYPE[sec]}.</b> ${TYPE_DESC[sec]||''}</div>
+      ${chk?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2)">
+        <b>Контрольный вопрос: ${TYPE[chk]||chk}.</b>
+        <span style="color:${chk===dom?'var(--pass)':chk===sec?'var(--warn)':'var(--fail)'}">${chk===dom?'Совпадает с ведущим типом — профиль подтверждён.':chk===sec?'Совпадает со вторым типом — профиль в целом держится.':'Не совпадает ни с ведущим, ни со вторым. Значит, в двадцати блоках человек отвечал одно, а прямым вопросом выбрал другое — уточнить на интервью, чему верить.'}</span></div>`:''}
       ${(dom==='r'||sec==='r')&&eng[0]&&SUB[eng[0][0]]?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2)">
         <b>Что затягивает: ${SUB[eng[0][0]][0]}</b> <span class="muted">(${eng[0][1]} из 18)</span>
         <div class="muted" style="margin-top:3px">${SUB[eng[0][0]][1]}</div></div>`:''}
