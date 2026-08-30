@@ -564,7 +564,7 @@ function mc(box,arr,pfx,sn,shuffle){arr.forEach((it,i)=>{const d=document.create
  if(shuffle){ for(let k=idx.length-1;k>0;k--){ const r=Math.floor(Math.random()*(k+1)); [idx[k],idx[r]]=[idx[r],idx[k]]; } }
  idx.forEach(j=>h+=`<label class="opt"><input type="radio" name="${pfx}${i}" value="${j}"><span>${it.o[j]}</span></label>`);
  d.innerHTML=h+'</div>';box.appendChild(d);});}
-mc($('logBox'),LOG,'l',2);
+mc($('logBox'),LOG,'l',2,true);
 function mixed(box,arr,pfx,sn){arr.forEach((it,i)=>{const d=document.createElement('div');d.className='item';
  let h=`<div class="item-n">${sn}.${i+1}</div><div class="q">${it.q}</div>`;
  if(it.t==='n')h+=`<input class="num" type="text" inputmode="decimal" id="${pfx}${i}" placeholder="—">`;
