@@ -283,11 +283,18 @@ footer{margin-top:70px;padding-top:16px;border-top:1px solid var(--line);font-fa
 <li>«Запись случайно попала в эфир. Через час её удалили со всех каналов»</li>
 <li>«Уволенный сотрудник ЦБ рассказал то, о чём молчал 12 лет»</li>
 </ul>
-<p style="margin:0"><b>Придумайте заголовки к подобной картинке.</b></p></div>
+<p style="margin:0"><b>Придумай в подобном формате до 10 заголовков.</b></p></div>
 <div class="item"><div class="item-n">5.1</div>
 <div class="gen-row"><span class="gen-i">01</span><input type="text" id="gen0" placeholder="Заголовок 1"></div>
 <div class="gen-row"><span class="gen-i">02</span><input type="text" id="gen1" placeholder="Заголовок 2"></div>
-<div class="gen-row"><span class="gen-i">03</span><input type="text" id="gen2" placeholder="Заголовок 3"></div></div>
+<div class="gen-row"><span class="gen-i">03</span><input type="text" id="gen2" placeholder="Заголовок 3"></div>
+<div class="gen-row"><span class="gen-i">04</span><input type="text" id="gen3" placeholder="Заголовок 4"></div>
+<div class="gen-row"><span class="gen-i">05</span><input type="text" id="gen4" placeholder="Заголовок 5"></div>
+<div class="gen-row"><span class="gen-i">06</span><input type="text" id="gen5" placeholder="Заголовок 6"></div>
+<div class="gen-row"><span class="gen-i">07</span><input type="text" id="gen6" placeholder="Заголовок 7"></div>
+<div class="gen-row"><span class="gen-i">08</span><input type="text" id="gen7" placeholder="Заголовок 8"></div>
+<div class="gen-row"><span class="gen-i">09</span><input type="text" id="gen8" placeholder="Заголовок 9"></div>
+<div class="gen-row"><span class="gen-i">10</span><input type="text" id="gen9" placeholder="Заголовок 10"></div></div>
 </div>
 
 <div class="sec" data-blk="mt"><div class="sec-h"><span class="sec-tag">06</span><h2>Что вас мотивирует</h2><span class="sec-time">12 мин</span></div>
@@ -767,7 +774,7 @@ function collectResponses(){
  ST.forEach((_,bi)=>document.querySelectorAll(`select[data-b="s${bi}"]`).forEach(s=>R.engage[`s${bi}-${s.dataset.si}`]=s.value));
  ASQ.forEach((_,i)=>{R.asq['cause'+i]=$('ac'+i).value.trim();
    ['int','stb','glb'].forEach(d=>R.asq[d+i]=rad(d+i));});
- for(let i=0;i<3;i++){const v=$('gen'+i).value.trim();if(v)R.hooks.push('Заголовок '+(i+1)+': '+v);}
+ for(let i=0;i<10;i++){const v=$('gen'+i).value.trim();if(v)R.hooks.push('Заголовок '+(i+1)+': '+v);}
  OPEN.forEach((_,i)=>R.open['op'+i]=$('op'+i).value.trim());
  R.self_name=SELF_NAME;
  return R;
@@ -785,7 +792,7 @@ function missing(){
  AM.forEach((it,i)=>{ const bad=it.t==='n'?val('a'+i)==='':rad('a'+i)===null;
    if(bad) push('04 · изменения', it.t==='n'?$('a'+i):firstRadio('a'+i)); });
 
- for(let i=0;i<3;i++){ if(!$('gen'+i).value.trim()){ push('05 · заголовки',$('gen'+i)); break; } }
+ if(![...Array(10).keys()].some(i=>$('gen'+i).value.trim())) push('05 · заголовки',$('gen0'));
 
 
  MT.forEach((_,bi)=>{ const sel=[...document.querySelectorAll(`select[data-b="m${bi}"]`)];

@@ -514,7 +514,7 @@ function renderCard(c,a,ans){
 
   <div class="cardbox">
     <h3>Что кандидат написал сам</h3>
-    <div class="lbl">Заголовки — ${hooks.length} из 3${tel.block_times?.gen?` за ${tel.block_times.gen} мин`:''}</div>
+    <div class="lbl">Заголовки — ${hooks.length} из 10${tel.block_times?.gen?` за ${tel.block_times.gen} мин`:''}</div>
     <div class="quote">${hooks.length?hooks.map(x=>esc(x.value)).join('\n'):'—'}</div>
     <div class="muted" style="font-size:12.5px;margin:-6px 0 16px">В балл не идёт — материал для разговора на интервью.</div>
     ${open.map((x,i)=>`<div class="lbl">${i===0?'Серия неудач':'Отношение к риску'}</div>
