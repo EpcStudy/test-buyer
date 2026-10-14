@@ -119,8 +119,33 @@ table.list tr.row:hover td{background:#F8FAFB;cursor:pointer}
 .anglelist{font-size:13.5px;margin:8px 0 0;padding-left:20px}
 .anglelist li{margin-bottom:3px}
 img,table,pre,code{max-width:100%}
+.badge{display:inline-block;min-width:18px;padding:1px 6px;border-radius:9px;background:var(--fail);color:#fff;font-size:10.5px;font-family:'JetBrains Mono',monospace;margin-left:6px;vertical-align:middle}
+.tpill{font-family:'JetBrains Mono',monospace;font-size:11.5px;white-space:nowrap}
+.tpill.g{color:var(--pass)}.tpill.r{color:var(--fail)}.tpill.n{color:var(--ink-2)}
+.grade{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.grade select{width:auto;min-width:92px}
+.grade input{flex:1;min-width:180px}
+.guide{font-size:12.5px;color:var(--ink-2);font-style:italic;margin:-4px 0 8px}
+.blkchk{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px}
+.blkchk label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:3px;padding:5px 10px;font-size:13px;background:var(--card);cursor:pointer}
+.blkchk input{width:auto}
+textarea.bank{font-family:'JetBrains Mono',monospace;font-size:12.5px;min-height:220px;line-height:1.5}
+.qrow{padding:8px 0;border-top:1px solid var(--line-2);font-size:13.5px}
+.qrow:first-child{border-top:none}
+.qrow .qt{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.qrow .qs{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-2);white-space:nowrap}
+.qrow .qo{color:var(--ink-2);font-size:12.5px;margin-top:3px}
+.flag{font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:2px 6px;border-radius:3px;background:var(--warn-w);color:var(--warn);margin-left:6px}
 .q code,.rules code{overflow-wrap:anywhere}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=checkbox],input[type=radio]{width:16px;min-width:0;height:16px;padding:0;margin:0;accent-color:var(--accent);flex-shrink:0}
+.ctabs{display:flex;gap:6px;margin:0 0 14px;border-bottom:2px solid var(--line);flex-wrap:wrap}
+.ctab{display:flex;align-items:center;gap:10px;background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;padding:10px 14px;font-size:15px;font-weight:600;color:var(--ink-2)}
+.ctab:hover{color:var(--ink)}
+.ctab.on{color:var(--ink);border-bottom-color:var(--accent)}
+.ctab-s{font-weight:400;font-size:12.5px}
+.ctab-s .badge{margin-left:4px}.ctab-s .muted{display:inline;margin-left:6px}
+input[type=checkbox]:focus,input[type=radio]:focus{outline-offset:2px}
 </style>
 </head>
 <body>
@@ -149,6 +174,8 @@ img,table,pre,code{max-width:100%}
       <button data-v="new">Добавить</button>
       <button data-v="stats">Источники</button>
       <button data-v="out">Результаты</button>
+      <button data-v="grade">Проверка<span class="badge hide" id="grade-badge">0</span></button>
+      <button data-v="theory" id="nav-theory" class="hide">Теория</button>
       <button data-v="users" id="nav-users" class="hide">Команда</button>
     </nav>
     <span class="who"><span id="me"></span><button id="out">Выйти</button></span>
@@ -189,6 +216,12 @@ img,table,pre,code{max-width:100%}
         <div style="margin-bottom:12px"><div class="lbl">Контакт: телеграм или почта</div><input id="n-contact"></div>
         <div style="margin-bottom:12px"><div class="lbl">Источник</div><select id="n-source"></select></div>
         <div style="margin-bottom:16px" id="n-detail-wrap" class="hide"><div class="lbl">От кого рекомендация</div><input id="n-detail" placeholder="имя того, кто привёл"></div>
+        <div style="margin-bottom:16px"><div class="lbl">Какой тест выдать</div>
+          <div class="blkchk" style="margin:6px 0 0">
+            <label><input type="radio" name="n-kind" value="test" checked> Первичный тест (отбор)</label>
+            <label><input type="radio" name="n-kind" value="theory"> Теория (человек уже в команде)</label>
+          </div>
+          <div class="muted" style="font-size:12.5px;margin-top:4px">Теорию можно выдать и позже — из карточки, в том числе отдельными блоками.</div></div>
         <button class="primary" id="n-btn">Создать и получить ссылку</button>
         <div class="err" id="n-err"></div>
         <div class="linkbox hide" id="n-link">
@@ -208,6 +241,72 @@ img,table,pre,code{max-width:100%}
         <span class="muted" id="o-cnt"></span>
       </div>
       <div style="overflow-x:auto"><div id="o-table"></div></div>
+    </div>
+
+    <!-- проверка открытых ответов -->
+    <div id="v-grade" class="hide">
+      <h1 class="page">Проверка открытых ответов</h1>
+      <p class="sub">Открытые вопросы теории в балл не идут — их читает человек и ставит оценку от 1 до 5. Оценка сохраняется сразу.</p>
+      <div class="tools">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13.5px;white-space:nowrap">
+          <input type="checkbox" id="g-only" checked style="width:auto"> только непроверенные</label>
+        <span class="muted" id="g-cnt"></span>
+      </div>
+      <div id="grade-body"></div>
+    </div>
+
+    <!-- банк вопросов теории -->
+    <div id="v-theory" class="hide">
+      <h1 class="page">Теория</h1>
+      <p class="sub">Банк вопросов, настройки теста и статистика: какие вопросы не решает никто, какие решают все.</p>
+      <div class="cardbox" style="max-width:620px">
+        <h3>Настройки теста</h3>
+        <div class="tools" style="margin-bottom:0;align-items:flex-end">
+          <div><div class="lbl">Название</div><input id="t-name" style="min-width:200px"></div>
+          <div><div class="lbl">Норматив, минут</div><input id="t-limit" inputmode="numeric" style="width:110px"></div>
+          <div><div class="lbl">Зачёт по блоку, %</div><input id="t-pass" inputmode="numeric" style="width:110px"></div>
+          <button class="ghost" id="t-save">Сохранить</button><span class="muted" id="t-ok"></span>
+        </div>
+        <div class="muted" style="margin-top:10px;font-size:12.5px">Норматив — на весь тест. При пересдаче отдельных блоков время считается пропорционально числу вопросов. Кандидат таймер не видит, время идёт только в статистику.</div>
+      </div>
+      <div id="t-blocks"></div>
+      <div class="cardbox">
+        <h3>Загрузить вопросы</h3>
+        <div class="muted" style="margin-bottom:10px;font-size:13px">Вставьте текст в формате ниже и нажмите «Проверить». Пример:</div>
+        <pre class="quote" style="font-family:'JetBrains Mono',monospace;font-size:12px;margin:0 0 12px">БЛОК: Метрики
+Показывать: 10
+
+Тип: один
+Вопрос: CTR — это
+Варианты: А) клики ÷ показы  Б) расход ÷ клики  В) заявки ÷ клики
+Верный: А
+
+Тип: несколько
+Вопрос: Из чего складывается выручка
+Варианты:
+А) конверсии
+Б) выплата
+В) CTR
+Верный: А, Б
+
+Тип: число
+Вопрос: Расход $60, кликов 100. Чему равен CPC?
+Ответ: 0.6, допуск ±0.01
+Единица: $
+
+Тип: открытый
+Вопрос: Почему при падении CR растёт CPA?
+Ориентир: Связь CPA = CPC ÷ CR, своими словами</pre>
+        <textarea id="t-src" class="bank" placeholder="БЛОК: …"></textarea>
+        <div class="tools" style="margin-top:10px">
+          <button class="ghost" id="t-parse">Проверить</button>
+          <button class="ghost hide" id="t-load">Загрузить — заменить банк</button>
+          <button class="ghost hide" id="t-append">Загрузить — добавить к банку</button>
+          <button class="ghost" id="t-dump">Скачать текущий банк текстом</button>
+        </div>
+        <div id="t-preview" style="margin-top:10px"></div>
+        <div class="err" id="t-err"></div>
+      </div>
     </div>
 
     <!-- команда -->
@@ -268,6 +367,7 @@ img,table,pre,code{max-width:100%}
 const SB_URL='https://ebyrccbbpzdfwdfgpysd.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVieXJjY2JicHpkZndkZmdweXNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3MTM4NTcsImV4cCI6MjEwMjI4OTg1N30.kEQvX6kV-FwwRLG653AyyMnaUflLjsO2Bn-20vw72fQ';
 const TEST_BASE=location.origin+'/';
+const THEORY_BASE=location.origin+'/theory.html';
 const sb=supabase.createClient(SB_URL,SB_KEY);
 const $=id=>document.getElementById(id);
 const d2=d=>{if(!d)return'—';const x=new Date(d);const p=n=>String(n).padStart(2,'0');return `${p(x.getDate())}.${p(x.getMonth()+1)}.${String(x.getFullYear()).slice(2)}`};
@@ -335,8 +435,9 @@ async function init(){
   const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
   ME=p||{full_name:session.user.email,role:'recruiter'};
   $('me').textContent=`${ME.full_name||''} · ${({recruiter:'рекрутер',hrd:'HRD',founder:'Founder'})[ME.role]||ME.role}`;
-  if(ME.role==='hrd'||ME.role==='founder')$('nav-users').classList.remove('hide');
+  if(ME.role==='hrd'||ME.role==='founder'){$('nav-users').classList.remove('hide');$('nav-theory').classList.remove('hide');}
   $('login').classList.add('hide'); $('app').classList.remove('hide');
+  refreshGradeBadge();
   $('n-source').onchange=()=>{
     const o=$('n-source').selectedOptions[0];
     $('n-detail-wrap').classList.toggle('hide',!o||o.dataset.d!=='true');
@@ -349,8 +450,10 @@ async function init(){
 document.querySelectorAll('header.bar nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
 function show(v){
   document.querySelectorAll('header.bar nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
-  ['list','card','new','stats','users','out'].forEach(x=>$('v-'+x).classList.toggle('hide',x!==v));
+  ['list','card','new','stats','users','out','grade','theory'].forEach(x=>$('v-'+x).classList.toggle('hide',x!==v));
   if(v==='stats')loadStats();
+  if(v==='grade')loadGrading();
+  if(v==='theory')loadTheoryAdmin();
   if(v==='users')loadUsers();
   if(v==='out')loadOutcomes();
   if(v==='list')loadList();
@@ -391,7 +494,7 @@ function renderList(){
   });
   if(!rows.length){$('list-body').innerHTML='<div class="empty">Никого не нашлось. Измените фильтры или добавьте кандидата.</div>';return;}
   $('list-body').innerHTML=`<table class="list"><thead><tr>
-    <th>Кандидат</th><th>Источник</th><th>Рекрутер</th><th>Этап</th><th>Решение</th><th>Профиль</th><th>Балл</th><th>Дата</th></tr></thead><tbody>`+
+    <th>Кандидат</th><th>Источник</th><th>Рекрутер</th><th>Этап</th><th>Решение</th><th>Профиль</th><th>Балл</th><th>Теория</th><th>Дата</th></tr></thead><tbody>`+
    rows.map(r=>{
     const s=STAGE[r.status]||['—','n'];
     const d=r.decision?DECISION[r.decision]:['Ожидает решения','n'];
@@ -406,6 +509,7 @@ function renderList(){
       <td><span class="pill ${d[1]}">${d[0]}</span></td>
       <td>${spine(r.scores)}</td>
       <td>${r.composite!=null?`<span class="score">${Math.max(3,Math.min(10,Math.round(r.composite/10)))}</span>${v?` <span class="pill ${v[1]}">${v[0]}</span>`:''}`:'<span class="muted">—</span>'}</td>
+      <td>${theoryPill(r)}</td>
       <td class="mono" style="font-size:11.5px;color:var(--ink-2)">${d2(r.created_at)}</td>
     </tr>`}).join('')+'</tbody></table>';
   document.querySelectorAll('tr.row').forEach(t=>t.onclick=()=>openCard(t.dataset.id));
@@ -422,7 +526,10 @@ async function openCard(id){
   const a=(aa||[])[0];
   const {data:ans}=a?await sb.from('answers').select('*').eq('attempt_id',a.id):{data:[]};
   CUR={c,a};
+  const row=ROWS.find(r=>r.id===id)||{};
+  CARD_TAB=(row.theory_attempts>0||!a)?'theory':'test';
   renderCard(c,a,ans||[]);
+  renderTheorySection(c);
 }
 
 function anketa(c,a){
@@ -444,46 +551,56 @@ function anketa(c,a){
    </div>`;
 }
 
+let CARD_TAB='test';
+function cardTabs(c,a,active){
+  const row=ROWS.find(r=>r.id===c.id)||{};
+  let t1;
+  if(a&&a.finished_at){
+    const s=Math.max(3,Math.min(10,Math.round(composite(a.scores||{})/10)));
+    const ok=a.tier==='priority'||a.tier==='pass';
+    t1=`<span class="score" style="font-size:15px">${s}</span> <span class="pill ${ok?'g':'r'}">${ok?'Проходит':'Не проходит'}</span>`;
+  } else if(a) t1=`<span class="pill n">${(STAGE[c.status]||['—'])[0]}</span>`;
+  else t1='<span class="pill n">не выдавался</span>';
+  return `<div class="ctabs">
+    <button class="ctab ${active==='test'?'on':''}" data-ct="test"><span>Первичный тест</span><span class="ctab-s">${t1}</span></button>
+    <button class="ctab ${active==='theory'?'on':''}" data-ct="theory"><span>Теория</span><span class="ctab-s">${theoryPill(row)}</span></button>
+  </div>`;
+}
+
 function renderCard(c,a,ans){
   const back=`<button class="ghost" onclick="show('list')">← К списку</button>`;
+  const header=`<div class="cardbox" style="margin-top:14px">
+    <div class="hd"><div class="avatar">${esc((c.full_name||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}</div>
+      <div style="flex:1;min-width:200px"><div class="big" style="font-size:20px">${esc(c.full_name)}</div>
+      <div class="muted">${[esc(c.sources?.name||'—')+(c.source_detail?' · '+esc(c.source_detail):''),'рекрутер '+esc(c.profiles?.full_name||'—'),c.contact?esc(c.contact):null].filter(Boolean).join(' · ')}</div></div></div>
+  </div>`;
 
+  // ---- вкладка «Первичный тест»: всё, что было в карточке раньше, без изменений в логике
+  let test1;
   if(!a||!a.finished_at){
-    $('v-card').innerHTML=`${back}
-    <div class="cardbox" style="margin-top:14px">
-      <div class="hd"><div class="avatar">${esc((c.full_name||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}</div>
-      <div><div class="big" style="font-size:20px">${esc(c.full_name)}</div>
-      <div class="muted">${esc((STAGE[c.status]||['—'])[0])}</div></div></div>
-    </div>${anketa(c,a)}${notesBox(c)}`;
-    bindNotes(c); return;
-  }
-
-  const sc=a.scores||{}, tel=a.telemetry||{}, b=sc.blocks||{}, asq=sc.asq||{};
-  const comp=composite(sc);
-  const score10=Math.max(3,Math.min(10,Math.round(comp/10)));
-  const ok=a.tier==='priority'||a.tier==='pass';
-  const motiv=Object.entries(sc.motiv||{}).sort((x,y)=>y[1]-x[1]);
-  const eng=Object.entries(sc.engage||{}).sort((x,y)=>y[1]-x[1]);
-  const dom=motiv[0]?.[0], sec=motiv[1]?.[0];
-  const chk=Object.entries(sc.check||{}).sort((x,y)=>y[1]-x[1])[0]?.[0]; // тип, которому в контрольном вопросе поставили 5
-  const hooks=ans.filter(x=>x.block==='hooks');
-  const causes=ans.filter(x=>x.block==='asq'&&x.item_key.startsWith('cause'));
-  const open=ans.filter(x=>x.block==='open');
-  const vals={cog:sc.cog,learn:sc.learn,optim:sc.optim};
-
-  $('v-card').innerHTML=`${back}
-
-  <div class="cardbox" style="margin-top:14px">
+    test1=`<div class="cardbox"><div class="muted">${a?esc((STAGE[c.status]||['—'])[0]):'Первичный тест не выдавался.'}</div></div>${anketa(c,a)}`;
+  } else {
+    const sc=a.scores||{}, tel=a.telemetry||{}, b=sc.blocks||{}, asq=sc.asq||{};
+    const comp=composite(sc);
+    const score10=Math.max(3,Math.min(10,Math.round(comp/10)));
+    const ok=a.tier==='priority'||a.tier==='pass';
+    const motiv=Object.entries(sc.motiv||{}).sort((x,y)=>y[1]-x[1]);
+    const eng=Object.entries(sc.engage||{}).sort((x,y)=>y[1]-x[1]);
+    const dom=motiv[0]?.[0], sec=motiv[1]?.[0];
+    const hooks=ans.filter(x=>x.block==='hooks');
+    const causes=ans.filter(x=>x.block==='asq'&&x.item_key.startsWith('cause'));
+    const open=ans.filter(x=>x.block==='open');
+    const vals={cog:sc.cog,learn:sc.learn,optim:sc.optim};
+    test1=`<div class="cardbox">
     <div class="hd">
-      <div class="avatar">${esc((c.full_name||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}</div>
       <div style="flex:1;min-width:200px">
-        <div class="big" style="font-size:20px">${esc(c.full_name)}</div>
-        <div class="muted">${a.self_name?esc(a.self_name)+' · ':''}${esc(c.sources?.name||'—')} · рекрутер ${esc(c.profiles?.full_name||'—')}</div>
+        <div class="verdict ${ok?'g':'r'}" style="margin-top:0">${ok?'Рекомендуется на практическую часть':'Не рекомендуется на практическую часть'}</div>
+        <div style="margin-top:14px;font-weight:600">${TYPE[dom]||''} + ${TYPE[sec]||''}</div>
+        <div class="muted" style="margin-top:4px">${esc(summary(vals,dom,sec,a))}</div>
+        ${a.self_name&&a.self_name.trim().toLowerCase()!==(c.full_name||'').trim().toLowerCase()?`<div class="muted" style="margin-top:6px">Назвался сам: ${esc(a.self_name)} <span class="pill a">не совпадает</span></div>`:''}
       </div>
       <div style="text-align:right"><div class="big">${score10}</div><div class="muted mono" style="font-size:11.5px">из 10</div></div>
     </div>
-    <div class="verdict ${ok?'g':'r'}">${ok?'Рекомендуется на практическую часть':'Не рекомендуется на практическую часть'}</div>
-    <div style="margin-top:14px;font-weight:600">${TYPE[dom]||''} + ${TYPE[sec]||''}</div>
-    <div class="muted" style="margin-top:4px">${esc(summary(vals,dom,sec,a))}</div>
   </div>
 
   ${anketa(c,a)}
@@ -514,7 +631,7 @@ function renderCard(c,a,ans){
 
   <div class="cardbox">
     <h3>Что кандидат написал сам</h3>
-    <div class="lbl">Заголовки — ${hooks.length} из 10${tel.block_times?.gen?` за ${tel.block_times.gen} мин`:''}</div>
+    <div class="lbl">Хуки — ${hooks.length} шт${tel.block_times?.gen?` за ${tel.block_times.gen} мин`:''}</div>
     <div class="quote">${hooks.length?hooks.map(x=>esc(x.value)).join('\n'):'—'}</div>
     <div class="muted" style="font-size:12.5px;margin:-6px 0 16px">В балл не идёт — материал для разговора на интервью.</div>
     ${open.map((x,i)=>`<div class="lbl">${i===0?'Серия неудач':'Отношение к риску'}</div>
@@ -532,9 +649,6 @@ function renderCard(c,a,ans){
     <div style="margin-top:12px;font-size:13.5px;line-height:1.6">
       <div><b>Ведущий: ${TYPE[dom]}.</b> ${TYPE_DESC[dom]||''}</div>
       <div style="margin-top:6px"><b>Второй: ${TYPE[sec]}.</b> ${TYPE_DESC[sec]||''}</div>
-      ${chk?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2)">
-        <b>Контрольный вопрос: ${TYPE[chk]||chk}.</b>
-        <span style="color:${chk===dom?'var(--pass)':chk===sec?'var(--warn)':'var(--fail)'}">${chk===dom?'Совпадает с ведущим типом — профиль подтверждён.':chk===sec?'Совпадает со вторым типом — профиль в целом держится.':'Не совпадает ни с ведущим, ни со вторым. Значит, в двадцати блоках человек отвечал одно, а прямым вопросом выбрал другое — уточнить на интервью, чему верить.'}</span></div>`:''}
       ${(dom==='r'||sec==='r')&&eng[0]&&SUB[eng[0][0]]?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2)">
         <b>Что затягивает: ${SUB[eng[0][0]][0]}</b> <span class="muted">(${eng[0][1]} из 18)</span>
         <div class="muted" style="margin-top:3px">${SUB[eng[0][0]][1]}</div></div>`:''}
@@ -565,7 +679,19 @@ function renderCard(c,a,ans){
         :'Похоже, проходил сам'}</div>
   </div>
 
+`;
+  }
+
+  $('v-card').innerHTML=`${back}${header}${cardTabs(c,a,CARD_TAB)}
+  <div id="tab-test" class="${CARD_TAB==='test'?'':'hide'}">${test1}</div>
+  <div id="tab-theory" class="${CARD_TAB==='theory'?'':'hide'}"><div id="theory-box"></div></div>
   ${notesBox(c)}`;
+  document.querySelectorAll('.ctab').forEach(btn=>btn.onclick=()=>{
+    CARD_TAB=btn.dataset.ct;
+    document.querySelectorAll('.ctab').forEach(x=>x.classList.toggle('on',x===btn));
+    $('tab-test').classList.toggle('hide',CARD_TAB!=='test');
+    $('tab-theory').classList.toggle('hide',CARD_TAB!=='theory');
+  });
   bindNotes(c);
 }
 
@@ -701,15 +827,16 @@ async function loadOutcomes(){
     </div>`;
 
   $('o-table').innerHTML=`<table class="list"><thead><tr>
-    <th>Кандидат</th><th>Балл</th><th>Руководитель</th>
+    <th>Кандидат</th><th>Балл</th><th>Теория</th><th>Руководитель</th>
     <th colspan="2">1-й месяц</th><th colspan="2">2-й месяц</th>
     <th colspan="2">3-й месяц</th><th colspan="2">4-й месяц</th><th rowspan="2" style="vertical-align:bottom">Итог (средний)</th></tr>
-    <tr><th></th><th></th><th></th>
+    <tr><th></th><th></th><th></th><th></th>
     <th>профит</th><th>ROI</th><th>профит</th><th>ROI</th>
     <th>профит</th><th>ROI</th><th>профит</th><th>ROI</th></tr></thead><tbody>`+
    ROWSOUT.map(r=>`<tr>
      <td class="top"><b>${esc(r.full_name)}</b></td>
      <td class="mono top">${r.test_score??'—'}</td>
+     <td class="top">${theoryPill({theory_pct:r.theory_pct,theory_passed:r.theory_passed,theory_blocks:r.theory_blocks,theory_open_avg:r.theory_open_avg})}</td>
      <td class="top">${esc(r.senior||'—')}</td>
      <td class="top">${cell(r.id,1,'profit',r.p1)}${partialCell(r)}</td>
      <td class="top">${cell(r.id,1,'roi',r.r1)}</td>
@@ -721,7 +848,7 @@ async function loadOutcomes(){
          <div style="color:${r.avg_roi<0?'var(--fail)':'var(--pass)'}">${r.avg_roi??'—'}%</div>
          <div class="muted" style="font-size:11.5px">за ${r.months_filled} мес</div>`:'<span class="muted">—</span>'}</td>
    </tr>`).join('')+'</tbody></table>'+
-   '<div class="muted" style="margin-top:10px;font-size:12.5px">Итог — среднее по заполненным месяцам: профит и ROI. Пометка «неполный» ставится, если первый месяц человек отработал не целиком. Рядом можно вписать, сколько дней он отработал — тогда понятно, насколько его цифры занижены.</div>';
+   '<div class="muted" style="margin-top:10px;font-size:12.5px">Итог — среднее по заполненным месяцам: профит и ROI. Пометка «неполный» ставится, если первый месяц человек отработал не целиком. Рядом можно вписать, сколько дней он отработал — тогда понятно, насколько его цифры занижены. Теория — процент по закрытым вопросам, последняя попытка по каждому блоку; наведите, чтобы увидеть блоки.</div>';
 
   document.querySelectorAll('.oc').forEach(el=>{el.onchange=saveCell;el.onblur=saveCell;});
   document.querySelectorAll('.ocp').forEach(el=>el.onchange=savePartial);
@@ -760,10 +887,14 @@ $('o-export').onclick=async()=>{
   const {data}=await sb.from('analysis_export').select('*');
   const rows=data||[];
   if(!rows.length){alert('Пока нечего выгружать.');return;}
-  const cols=Object.keys(rows[0]);
+  // колонки-объекты (блоки теории) раскладываем в отдельные столбцы
+  const objCols=Object.keys(rows[0]).filter(k=>rows.some(r=>r[k]&&typeof r[k]==='object'&&!Array.isArray(r[k])));
+  const sub={}; objCols.forEach(k=>{sub[k]=[...new Set(rows.flatMap(r=>Object.keys(r[k]||{})))];});
+  const cols=[]; Object.keys(rows[0]).forEach(k=>{ if(objCols.includes(k)) sub[k].forEach(s=>cols.push(k+': '+s)); else cols.push(k); });
+  const get=(r,c)=>{const i=c.indexOf(': ');if(i>0&&objCols.includes(c.slice(0,i))){const o=r[c.slice(0,i)];return o?o[c.slice(i+2)]:null;}return r[c];};
   const q=v=>{if(v==null)return'';const s=typeof v==='object'?JSON.stringify(v):String(v);
     return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
-  const csv=[cols.join(',')].concat(rows.map(r=>cols.map(c=>q(r[c])).join(','))).join('\n');
+  const csv=[cols.join(',')].concat(rows.map(r=>cols.map(c=>q(get(r,c))).join(','))).join('\n');
   const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
@@ -834,9 +965,17 @@ $('n-btn').onclick=async()=>{
   }).select().single();
   $('n-btn').disabled=false;$('n-btn').textContent='Создать и получить ссылку';
   if(e1){$('n-err').textContent='Не удалось создать: '+e1.message;return;}
-  const {data:a,error:e2}=await sb.from('attempts').insert({candidate_id:c.id}).select().single();
-  if(e2){$('n-err').textContent='Кандидат создан, но ссылка не выпустилась: '+e2.message;return;}
-  const url=`${TEST_BASE}?t=${a.token}`;
+  const kind=(document.querySelector('input[name="n-kind"]:checked')||{}).value||'test';
+  let url;
+  if(kind==='theory'){
+    const {data:t,error:e3}=await sb.rpc('theory_issue',{p_candidate_id:c.id});
+    if(e3||!t||!t.ok){$('n-err').textContent='Кандидат создан, но ссылка на теорию не выпустилась: '+(e3?e3.message:(t&&t.reason)||'');loadList();return;}
+    url=`${THEORY_BASE}?t=${t.token}`;
+  } else {
+    const {data:a,error:e2}=await sb.from('attempts').insert({candidate_id:c.id}).select().single();
+    if(e2){$('n-err').textContent='Кандидат создан, но ссылка не выпустилась: '+e2.message;return;}
+    url=`${TEST_BASE}?t=${a.token}`;
+  }
   $('n-url').textContent=url; $('n-link').classList.remove('hide');
   $('n-copy').onclick=()=>{navigator.clipboard.writeText(url);
     $('n-copy').textContent='Скопировано';setTimeout(()=>$('n-copy').textContent='Скопировать',2000)};
@@ -887,6 +1026,283 @@ async function loadSources(){
   $('n-source').innerHTML=SOURCES.map(x=>`<option value="${x.id}" data-d="${x.requires_detail}">${esc(x.name)}</option>`).join('');
   $('n-source').onchange();
 }
+
+/* ============================================================
+   ТЕОРИЯ
+   ============================================================ */
+const QT={single:'один верный',multi:'несколько верных',number:'число',open:'открытый'};
+const LET='АБВГДЕЖЗИКЛМН';
+
+/* --- короткий статус в списке и таблице результатов --- */
+function theoryPill(r){
+  const blocks=r.theory_blocks?Object.entries(r.theory_blocks).map(([n,v])=>`${n}: ${v==null?'открытые':v+'%'}`).join('\n'):'';
+  if(r.theory_pct==null&&!r.theory_attempts&&!r.theory_open_attempts)return '<span class="muted">—</span>';
+  if(r.theory_pct==null){
+    return r.theory_open_attempts?'<span class="tpill n">ссылка выдана</span>':'<span class="tpill n">только открытые</span>';
+  }
+  const cls=r.theory_passed?'g':'r';
+  return `<span class="tpill ${cls}" title="${esc(blocks)}">${r.theory_pct}% ${r.theory_passed?'✓':'✗'}</span>`+
+    (r.theory_pending?`<span class="badge" title="открытых ответов ждут проверки">${r.theory_pending}</span>`:'')+
+    (r.theory_open_attempts?'<div class="muted" style="font-size:11.5px">есть незавершённая</div>':'')+
+    (r.theory_open_avg!=null?`<div class="muted" style="font-size:11.5px">открытые ${r.theory_open_avg} из 5</div>`:'');
+}
+
+async function refreshGradeBadge(){
+  try{
+    const {count}=await sb.from('theory_answer_view').select('id',{count:'exact',head:true}).eq('qtype','open').is('grade',null).not('finished_at','is',null);
+    const b=$('grade-badge'); b.textContent=count||0; b.classList.toggle('hide',!count);
+  }catch(e){ console.warn('badge',e); }
+}
+
+/* --- один открытый ответ с оценкой (карточка и очередь проверки) --- */
+function gradeRow(x){
+  return `<div class="metric" data-ans="${x.id}">
+    <div class="lbl" style="margin-bottom:4px">${esc(x.block)} · ${esc(x.question)}</div>
+    ${x.guide?`<div class="guide">На что смотреть: ${esc(x.guide)}</div>`:''}
+    <div class="quote" style="margin:4px 0 0">${x.value?esc(x.value):'<span class="muted">не ответил</span>'}</div>
+    <div class="grade">
+      <select class="g-sel"><option value="">без оценки</option>${[1,2,3,4,5].map(n=>`<option value="${n}" ${x.grade===n?'selected':''}>${n} из 5</option>`).join('')}</select>
+      <input class="g-note" placeholder="комментарий, по желанию" value="${esc(x.grade_note||'')}">
+      <span class="muted g-ok" style="font-size:12px">${x.graded_at?'проверил '+esc(x.graded_by_name||'')+' '+d2(x.graded_at):''}</span>
+    </div></div>`;
+}
+function openLine(st){
+  return `Открытых ответов: ${st.open_graded} проверено${st.open_pending?`, <b style="color:var(--fail)">${st.open_pending} ${st.open_pending===1?'ждёт':'ждут'}</b>`:''}${st.open_avg!=null?` · средняя оценка ${st.open_avg} из 5`:''}`;
+}
+function bindGrades(root,after){
+  root.querySelectorAll('[data-ans]').forEach(el=>{
+    const save=async()=>{
+      const g=el.querySelector('.g-sel').value, note=el.querySelector('.g-note').value, ok=el.querySelector('.g-ok');
+      const {data,error}=await sb.rpc('theory_grade',{p_answer_id:el.dataset.ans,p_grade:g?+g:null,p_note:note||null});
+      const bad=error||!data||!data.ok;
+      ok.style.color=bad?'var(--fail)':'var(--pass)';
+      ok.textContent=bad?('Не сохранилось: '+(error?error.message:data&&data.reason)):'Сохранено';
+      if(!bad){refreshGradeBadge(); if(after)after();}
+    };
+    el.querySelector('.g-sel').onchange=save;
+    el.querySelector('.g-note').onchange=save;
+  });
+}
+
+/* --- секция «Теория» в карточке кандидата --- */
+async function renderTheorySection(c){
+  const box=$('theory-box'); if(!box)return;
+  box.innerHTML='<div class="cardbox"><h3>Теория</h3><div class="muted">Загружаем…</div></div>';
+  const [{data:att,error:e1},{data:opens},{data:blocks},{data:st}]=await Promise.all([
+    sb.from('theory_attempts').select('*').eq('candidate_id',c.id).order('attempt_no'),
+    sb.from('theory_answer_view').select('*').eq('candidate_id',c.id).eq('qtype','open').not('finished_at','is',null).order('attempt_no').order('block_order').order('q_order'),
+    sb.from('theory_blocks').select('id,name,sort_order,show_count,test_id,theory_tests!inner(is_active)').eq('is_active',true).eq('theory_tests.is_active',true).order('sort_order'),
+    sb.from('theory_status').select('*').eq('candidate_id',c.id).maybeSingle()
+  ]);
+  if(e1){box.innerHTML=`<div class="cardbox"><h3>Теория</h3><div class="err">Не удалось загрузить: ${esc(e1.message)}. Если здесь написано про theory_attempts — значит файл 23-theory.sql в базе не отработал.</div></div>`;return;}
+  const A=att||[], O=opens||[], B=blocks||[];
+  const status=st?`<div style="font-weight:600;margin-bottom:4px">${st.pct!=null?`Итог по закрытым: ${st.pct}% — ${st.passed?'зачёт':st.blocks_done<st.blocks_total?'пройдены не все блоки':'есть проваленные блоки'}`:'Закрытых вопросов ещё не сдавал'}</div>
+      ${st.blocks?`<div class="muted" style="font-size:13px">${Object.entries(st.blocks).map(([n,v])=>`${esc(n)}: ${v==null?'открытые':v+'%'}`).join(' · ')}</div>`:''}
+      <div class="muted" style="font-size:13px;margin-top:3px">${openLine(st)}</div>`
+    :'<div class="muted">Ссылка на теорию ещё не выдавалась.</div>';
+  const stageOf=a=>a.finished_at?['Завершил '+d2(a.finished_at),'g']:a.started_at?['Проходит','a']:a.opened_at?['Открыл ссылку','n']:['Не открыл','n'];
+  const attRows=A.length?`<table class="list" style="margin-top:12px"><thead><tr><th>№</th><th>Выдана</th><th>Этап</th><th>Блоки и результат</th><th>Время</th><th>Подсказки</th><th></th></tr></thead><tbody>`+
+    A.map(a=>{const s=stageOf(a); const res=a.result?.blocks?Object.values(a.result.blocks).sort((x,y)=>(x.ord||0)-(y.ord||0)):null;
+      const bl=res?res.map(b=>`<div>${esc(b.name)}: ${b.pct==null?'<span class="muted">открытые</span>':`<span class="tpill ${b.passed?'g':'r'}">${b.correct} из ${b.closed} · ${b.pct}% ${b.passed?'✓':'✗'}</span>`}</div>`).join('')
+        :(a.question_set||[]).map(b=>esc(b.name)).join(', ');
+      const t=a.finished_at?`${Math.round((a.used_sec||0)/60)} мин <span class="muted">/ норматив ${Math.round(a.limit_sec/60)}</span>${a.over_sec>0?`<div style="color:var(--fail);font-size:12px">+${Math.round(a.over_sec/60)} мин сверх</div>`:''}`:`<span class="muted">норматив ${Math.round(a.limit_sec/60)} мин</span>`;
+      const sig=a.finished_at?(()=>{const tl=a.telemetry||{};const n=tl.signals||0;return `<span class="tpill ${n>=2?'r':'n'}" title="уходил с вкладки ${tl.away||0}, вставок ${tl.pastes||0}, кусками ${tl.bursts||0}">${n} из 3</span>`;})():'';
+      const url=`${THEORY_BASE}?t=${a.token}`;
+      return `<tr><td class="mono top">${a.attempt_no}</td><td class="mono top" style="font-size:11.5px">${d2(a.invited_at)}</td><td class="top"><span class="pill ${s[1]}">${s[0]}</span></td>
+        <td class="top" style="font-size:13px">${bl}</td><td class="top mono" style="font-size:12px">${t}</td><td class="top">${sig}</td>
+        <td class="top">${a.finished_at?'':`<button class="ghost" style="padding:4px 10px;font-size:12px" onclick="navigator.clipboard.writeText('${url}');this.textContent='Скопировано'">Ссылка</button>`}</td></tr>`;}).join('')+'</tbody></table>':'';
+  const issue=B.length?`<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line-2)">
+      <div class="lbl">Выдать ссылку</div>
+      <div class="muted" style="font-size:12.5px;margin:4px 0 2px">Снимите галочки, чтобы выдать пересдачу только по нужным блокам. Норматив времени пересчитается по числу вопросов.</div>
+      <div class="blkchk" id="th-blocks">${B.map(b=>`<label><input type="checkbox" value="${b.id}" checked> ${esc(b.name)}</label>`).join('')}</div>
+      <div class="tools" style="margin:0"><button class="ghost" id="th-issue">Выдать ссылку на теорию</button><span class="muted" id="th-msg"></span></div>
+      <div class="linkbox hide" id="th-link"><div class="lbl" style="color:var(--accent)">Ссылка на теорию — отправьте кандидату</div><div class="u" id="th-url"></div><button class="ghost" id="th-copy">Скопировать</button></div>
+    </div>`:'<div class="muted" style="margin-top:12px">В тесте пока нет вопросов — загрузите банк во вкладке «Теория».</div>';
+  const opensHtml=O.length?`<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line-2)"><div class="lbl">Открытые ответы</div>${O.map(x=>gradeRow({...x,block:`попытка ${x.attempt_no} · ${x.block}`})).join('')}</div>`:'';
+  box.innerHTML=`<div class="cardbox"><h3>Теория</h3><div id="th-status">${status}</div>${attRows}${issue}${opensHtml}</div>`;
+  bindGrades(box,async()=>{ // после оценки обновляем строку «проверено / ждут»
+    const {data:s2}=await sb.from('theory_status').select('*').eq('candidate_id',c.id).maybeSingle();
+    const el=document.querySelector('#th-status .muted:last-child'); if(s2&&el)el.innerHTML=openLine(s2);
+  });
+  const btn=$('th-issue'); if(!btn)return;
+  btn.onclick=async()=>{
+    const ids=[...document.querySelectorAll('#th-blocks input:checked')].map(e=>e.value);
+    if(!ids.length){$('th-msg').textContent='Отметьте хотя бы один блок.';return;}
+    if(A.some(a=>!a.finished_at)&&!confirm('У кандидата уже есть незавершённая ссылка на теорию. Выдать ещё одну?'))return;
+    btn.disabled=true;$('th-msg').textContent='';
+    const all=ids.length===B.length;
+    const {data,error}=await sb.rpc('theory_issue',{p_candidate_id:c.id,p_block_ids:all?null:ids});
+    btn.disabled=false;
+    if(error||!data||!data.ok){$('th-msg').style.color='var(--fail)';$('th-msg').textContent='Не удалось: '+(error?error.message:(data&&data.reason)||'');return;}
+    const url=`${THEORY_BASE}?t=${data.token}`;
+    $('th-url').textContent=url;$('th-link').classList.remove('hide');
+    $('th-msg').style.color='';$('th-msg').textContent=`Попытка ${data.attempt_no}: ${data.questions} вопросов, норматив ${data.limit_min} мин`;
+    $('th-copy').onclick=()=>{navigator.clipboard.writeText(url);$('th-copy').textContent='Скопировано';};
+    A.push({attempt_no:data.attempt_no,finished_at:null});
+  };
+}
+
+/* --- вкладка «Проверка»: очередь открытых ответов --- */
+$('g-only').onchange=()=>loadGrading();
+async function loadGrading(){
+  const only=$('g-only').checked;
+  let q=sb.from('theory_answer_view').select('*').eq('qtype','open').not('finished_at','is',null).order('finished_at',{ascending:false}).order('block_order').order('q_order');
+  if(only)q=q.is('grade',null);
+  const {data,error}=await q;
+  if(error){$('grade-body').innerHTML=`<div class="empty">Не удалось загрузить: ${esc(error.message)}</div>`;return;}
+  const rows=data||[];
+  $('g-cnt').textContent=rows.length?`ответов: ${rows.length}`:'';
+  if(!rows.length){$('grade-body').innerHTML=`<div class="empty">${only?'Непроверенных ответов нет.':'Открытых ответов пока нет.'}</div>`;return;}
+  const groups={};
+  rows.forEach(x=>{const k=x.attempt_id;(groups[k]=groups[k]||{name:x.full_name,cid:x.candidate_id,no:x.attempt_no,at:x.finished_at,items:[]}).items.push(x);});
+  $('grade-body').innerHTML=Object.values(groups).map(g=>`<div class="cardbox">
+    <h3><a href="#" onclick="openCard('${g.cid}');return false" style="color:inherit">${esc(g.name)}</a> <span class="muted" style="font-weight:400;font-size:13px">· попытка ${g.no} · ${d2(g.at)}</span></h3>
+    ${g.items.map(gradeRow).join('')}</div>`).join('');
+  bindGrades($('grade-body'));
+}
+
+/* --- вкладка «Теория»: настройки, блоки, статистика, загрузка --- */
+let TTEST=null;
+async function loadTheoryAdmin(){
+  const {data:tests,error}=await sb.from('theory_tests').select('*').order('created_at');
+  if(error||!tests||!tests.length){$('t-blocks').innerHTML=`<div class="empty">${error?esc(error.message):'Тест не найден — запустите 23-theory.sql.'}</div>`;return;}
+  TTEST=tests.find(t=>t.is_active)||tests[0];
+  $('t-name').value=TTEST.name;$('t-limit').value=TTEST.time_limit_min;$('t-pass').value=TTEST.pass_pct;
+  const {data:qs}=await sb.from('theory_question_stats').select('*').eq('test_id',TTEST.id).order('block_order').order('sort_order');
+  const Q=(qs||[]).filter(x=>x.block_active);
+  const byBlock={};
+  Q.forEach(x=>{(byBlock[x.block]=byBlock[x.block]||[]).push(x);});
+  const {data:blks}=await sb.from('theory_blocks').select('*').eq('test_id',TTEST.id).eq('is_active',true).order('sort_order');
+  if(!(blks||[]).length){$('t-blocks').innerHTML='<div class="cardbox"><h3>Блоки</h3><div class="muted">Вопросов пока нет. Загрузите банк ниже.</div></div>';return;}
+  $('t-blocks').innerHTML=(blks||[]).map(b=>{
+    const list=(byBlock[b.name]||[]).filter(x=>x.is_active);
+    const stale=(byBlock[b.name]||[]).filter(x=>!x.is_active).length;
+    return `<div class="cardbox"><h3>${esc(b.name)} <span class="muted" style="font-weight:400;font-size:13px">· ${list.length} ${list.length%10===1&&list.length%100!==11?'вопрос':'вопросов'}${stale?` · ${stale} выключено`:''}</span></h3>
+      <div class="tools" style="margin-bottom:8px"><span class="muted" style="font-size:13px">Показывать кандидату</span>
+        <input data-blk="${b.id}" class="t-show" inputmode="numeric" value="${b.show_count??''}" placeholder="все" style="width:90px">
+        <span class="muted" style="font-size:12.5px">из ${list.length}. Пусто — все. Если меньше, у каждого будет свой случайный набор.</span></div>
+      ${list.map(x=>{const flag=x.shown>=5&&x.pct_correct!=null?(x.pct_correct<20?'<span class="flag">никто не решает</span>':x.pct_correct>=95?'<span class="flag">решают все</span>':''):'';
+        return `<div class="qrow"><div class="qt"><span>${x.sort_order}. ${esc(x.text)}${flag}</span>
+          <span class="qs">${QT[x.qtype]}${x.qtype==='open'?(x.avg_grade!=null?` · средняя ${x.avg_grade}`:''):(x.shown?` · ${x.pct_correct}% верно из ${x.shown}`:' · ещё не показывался')}</span></div>
+          ${x.qtype==='single'||x.qtype==='multi'?`<div class="qo">${(x.options||[]).map((o,i)=>{const ok=x.qtype==='single'?x.correct===i:(x.correct||[]).includes(i);return `${ok?'<b>':''}${LET[i]}) ${esc(o)}${ok?'</b>':''}`;}).join(' &nbsp; ')}</div>`
+           :x.qtype==='number'?`<div class="qo">Ответ: ${x.correct?.value}${x.correct?.tol?` ± ${x.correct.tol}`:''}${x.unit?' '+esc(x.unit):''}</div>`
+           :x.guide?`<div class="qo">Ориентир: ${esc(x.guide)}</div>`:''}</div>`;}).join('')}</div>`;}).join('');
+  document.querySelectorAll('.t-show').forEach(el=>el.onchange=async()=>{
+    const v=el.value.trim();
+    const {error}=await sb.from('theory_blocks').update({show_count:v===''?null:Math.max(1,parseInt(v,10)||1)}).eq('id',el.dataset.blk);
+    el.style.borderColor=error?'var(--fail)':'var(--pass)';setTimeout(()=>el.style.borderColor='',1500);
+  });
+}
+$('t-save').onclick=async()=>{
+  if(!TTEST)return;
+  const lim=parseInt($('t-limit').value,10), pass=parseInt($('t-pass').value,10);
+  if(!(lim>=5&&lim<=600)||!(pass>=1&&pass<=100)){$('t-ok').style.color='var(--fail)';$('t-ok').textContent='Норматив 5–600 минут, зачёт 1–100%';return;}
+  const {error}=await sb.from('theory_tests').update({name:$('t-name').value.trim()||TTEST.name,time_limit_min:lim,pass_pct:pass}).eq('id',TTEST.id);
+  $('t-ok').style.color=error?'var(--fail)':'var(--pass)';$('t-ok').textContent=error?'Не сохранилось: '+error.message:'Сохранено';
+  setTimeout(()=>$('t-ok').textContent='',3000);
+};
+
+/* --- разбор текста с вопросами --- */
+const TYPE_WORDS={'один':'single','одиночный':'single','single':'single','один верный':'single',
+  'несколько':'multi','множественный':'multi','multi':'multi','несколько верных':'multi',
+  'число':'number','числовой':'number','number':'number','открытый':'open','открытые':'open','open':'open','текст':'open'};
+function parseBank(src){
+  const errors=[], blocks=[]; let blk=null, q=null, last=null, lineNo=0;
+  const letters='АБВГДЕЖЗИКЛМНABCDEFGHIJKLMN';
+  const optRe=/^\s*([А-ЯA-Z])[\)\.]\s*(.+)$/;
+  const finishQ=()=>{
+    if(!q)return;
+    const n=q._line;
+    if(!q.type){ q.type = q.answer!=null?'number' : (q.options.length? (q.correctLetters.length>1?'multi':'single') : 'open'); }
+    if(!q.text){errors.push(`строка ${n}: вопрос без текста`);}
+    if(q.type==='single'||q.type==='multi'){
+      if(q.options.length<2)errors.push(`строка ${n}: «${(q.text||'').slice(0,40)}» — нужно минимум два варианта`);
+      const idx=q.correctLetters.map(L=>{const i=q.letters.indexOf(L);if(i<0)errors.push(`строка ${n}: верный вариант «${L}» не найден среди вариантов`);return i;}).filter(i=>i>=0);
+      if(!idx.length)errors.push(`строка ${n}: «${(q.text||'').slice(0,40)}» — не указан верный вариант`);
+      if(q.type==='single'&&idx.length>1)errors.push(`строка ${n}: у типа «один» несколько верных — поставьте «Тип: несколько»`);
+      q.correct=q.type==='single'?idx[0]:idx;
+    } else if(q.type==='number'){
+      if(q.answer==null)errors.push(`строка ${n}: «${(q.text||'').slice(0,40)}» — не указан числовой ответ`);
+      q.correct={value:q.answer,tol:q.tol||0};
+    }
+    blk.questions.push({type:q.type,text:q.text,options:q.options.length?q.options:undefined,correct:q.correct,unit:q.unit||undefined,guide:q.guide||undefined});
+    q=null; last=null;
+  };
+  const newQ=(n)=>{finishQ(); if(!blk){errors.push(`строка ${n}: вопрос вне блока — сначала строка «БЛОК: название»`);blk={name:'Без названия',questions:[]};blocks.push(blk);} q={_line:n,type:null,text:'',options:[],letters:[],correctLetters:[],answer:null,tol:0,unit:'',guide:''};};
+  src.replace(/\r/g,'').split('\n').forEach(raw=>{
+    lineNo++; const line=raw.trim(); if(!line)return;
+    const m=line.match(/^(БЛОК|Блок|блок|Показывать|показывать|Тип|тип|Вопрос|вопрос|Варианты|варианты|Верный|верный|Верные|верные|Ответ|ответ|Допуск|допуск|Единица|единица|Ориентир|ориентир)\s*:\s*(.*)$/);
+    if(m){
+      const key=m[1].toLowerCase(), val=m[2].trim();
+      if(key==='блок'){finishQ(); blk={name:val,questions:[]}; blocks.push(blk); if(!val)errors.push(`строка ${lineNo}: блок без названия`); last=null; return;}
+      if(key==='показывать'){ if(blk){blk.show=parseInt(val,10)||undefined;} return; }
+      if(key==='тип'){ newQ(lineNo); const t=TYPE_WORDS[val.toLowerCase()]; if(!t)errors.push(`строка ${lineNo}: неизвестный тип «${val}» (один / несколько / число / открытый)`); q.type=t||null; return; }
+      if(key==='вопрос'){ if(!q||q.text)newQ(lineNo); q.text=val; last='text'; return; }
+      if(!q){errors.push(`строка ${lineNo}: «${m[1]}» раньше, чем «Тип» или «Вопрос»`);return;}
+      if(key==='варианты'){ last='opts'; if(val){ val.split(/\s+(?=[А-ЯA-Z][\)\.])/).forEach(part=>{const om=part.match(optRe);if(om){q.letters.push(om[1]);q.options.push(om[2].trim());}else if(part.trim())q.options.push(part.trim()),q.letters.push(letters[q.options.length-1]);}); } return; }
+      if(key==='верный'||key==='верные'){ q.correctLetters=val.split(/[,\s;]+/).filter(Boolean).map(x=>/^\d+$/.test(x)?(q.letters[+x-1]||x):x.replace(/[\)\.]$/,'').toUpperCase()); last=null; return; }
+      if(key==='ответ'){ const nums=val.replace(/,/g,'.').match(/-?\d+(?:\.\d+)?/g)||[]; if(!nums.length)errors.push(`строка ${lineNo}: в ответе нет числа`); q.answer=nums.length?parseFloat(nums[0]):null; if(nums.length>1)q.tol=parseFloat(nums[1]); last=null; return; }
+      if(key==='допуск'){ const n=(val.replace(',','.').match(/\d+(?:\.\d+)?/)||[])[0]; q.tol=n?parseFloat(n):0; return; }
+      if(key==='единица'){ q.unit=val; return; }
+      if(key==='ориентир'){ q.guide=val; last='guide'; return; }
+    }
+    const om=line.match(optRe);
+    if(q&&om&&(last==='opts'||last===null||q.options.length)){ q.letters.push(om[1]); q.options.push(om[2].trim()); last='opts'; return; }
+    if(q&&last==='text'){ q.text+='\n'+line; return; }
+    if(q&&last==='guide'){ q.guide+=' '+line; return; }
+    errors.push(`строка ${lineNo}: не понял «${line.slice(0,50)}»`);
+  });
+  finishQ();
+  blocks.forEach(b=>{ if(!b.questions.length)errors.push(`блок «${b.name}» без вопросов`); });
+  if(!blocks.length)errors.push('не найдено ни одного блока');
+  return {blocks,errors};
+}
+let PARSED=null;
+$('t-parse').onclick=()=>{
+  $('t-err').textContent='';$('t-load').classList.add('hide');$('t-append').classList.add('hide');PARSED=null;
+  const {blocks,errors}=parseBank($('t-src').value);
+  const cnt=t=>blocks.reduce((s,b)=>s+b.questions.filter(x=>x.type===t).length,0);
+  $('t-preview').innerHTML=`<div class="quote" style="margin:0">${blocks.map(b=>`<div><b>${esc(b.name)}</b> — ${b.questions.length} вопр.${b.show?` (показывать ${b.show})`:''}</div>`).join('')}
+    <div class="muted" style="margin-top:6px">один верный: ${cnt('single')} · несколько верных: ${cnt('multi')} · число: ${cnt('number')} · открытых: ${cnt('open')}</div></div>`;
+  if(errors.length){$('t-err').innerHTML=errors.map(esc).join('<br>');return;}
+  PARSED={blocks}; $('t-load').classList.remove('hide'); $('t-append').classList.remove('hide');
+};
+async function doImport(replace){
+  if(!PARSED||!TTEST)return;
+  if(replace&&!confirm('Заменить банк вопросов?\n\nСтарые вопросы выключатся, новые ссылки будут выдаваться по новому банку. Уже выданные попытки продолжат работать со своими вопросами.'))return;
+  $('t-err').textContent='';
+  const {data,error}=await sb.rpc('theory_import',{p_test_id:TTEST.id,p_payload:PARSED,p_replace:replace});
+  if(error||!data||!data.ok){$('t-err').textContent='Не удалось: '+(error?error.message:(data&&data.reason)||'');return;}
+  $('t-preview').innerHTML=`<div class="verdict g" style="margin-top:0">Загружено: блоков ${data.blocks}, вопросов ${data.questions}</div>`;
+  $('t-load').classList.add('hide');$('t-append').classList.add('hide');PARSED=null;
+  loadTheoryAdmin();
+}
+$('t-load').onclick=()=>doImport(true);
+$('t-append').onclick=()=>doImport(false);
+$('t-dump').onclick=async()=>{
+  if(!TTEST)return;
+  const {data:qs}=await sb.from('theory_question_stats').select('*').eq('test_id',TTEST.id).eq('is_active',true).eq('block_active',true).order('block_order').order('sort_order');
+  const {data:blks}=await sb.from('theory_blocks').select('*').eq('test_id',TTEST.id).eq('is_active',true).order('sort_order');
+  if(!(qs||[]).length){alert('Банк пуст.');return;}
+  const T={single:'один',multi:'несколько',number:'число',open:'открытый'};
+  let out='';
+  (blks||[]).forEach(b=>{
+    out+=`БЛОК: ${b.name}\n`+(b.show_count?`Показывать: ${b.show_count}\n`:'')+'\n';
+    (qs||[]).filter(x=>x.block===b.name).forEach(x=>{
+      out+=`Тип: ${T[x.qtype]}\nВопрос: ${x.text}\n`;
+      if(x.qtype==='single'||x.qtype==='multi'){
+        out+='Варианты:\n'+(x.options||[]).map((o,i)=>`${LET[i]}) ${o}`).join('\n')+'\n';
+        const c=x.qtype==='single'?[x.correct]:(x.correct||[]);
+        out+=`Верный: ${c.map(i=>LET[i]).join(', ')}\n`;
+      } else if(x.qtype==='number'){
+        out+=`Ответ: ${x.correct?.value}${x.correct?.tol?`, допуск ±${x.correct.tol}`:''}\n`+(x.unit?`Единица: ${x.unit}\n`:'');
+      } else if(x.guide){ out+=`Ориентир: ${x.guide}\n`; }
+      out+='\n';
+    });
+  });
+  const blob=new Blob(['﻿'+out],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='bank-teorii-'+new Date().toISOString().slice(0,10)+'.txt';a.click();
+};
 
 sb.auth.getSession().then(({data:{session}})=>{if(session)init()});
 </script>
