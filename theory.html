@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Теория · тест для медиабаеров</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#ECEEF0;--card:#FFF;--ink:#10161F;--ink-2:#5C6773;--line:#C9CFD6;--line-2:#E3E7EB;
+--indigo:#2B3A8C;--indigo-w:#DDE1F2;--pass:#1F6B4E;--pass-w:#DCEAE3;--fail:#A32B22;--fail-w:#F4DEDB;--amber:#8A6100;--amber-w:#F6EBD2}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scrollbar-gutter:stable;overflow-x:hidden}
+body{margin:0;overflow-x:hidden;max-width:100%;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;line-height:1.55;font-size:15px}
+.wrap{max-width:840px;margin:0 auto;padding:0 20px 140px}
+header.top{position:relative;padding:40px 0 26px;margin-bottom:6px;border-bottom:2px solid var(--ink)}
+header.top::before{content:"";position:absolute;inset:0 0 26px 0;z-index:0;opacity:.5;
+background-image:linear-gradient(var(--line-2) 1px,transparent 1px),linear-gradient(90deg,var(--line-2) 1px,transparent 1px);
+background-size:22px 22px;-webkit-mask-image:linear-gradient(180deg,#000,transparent);mask-image:linear-gradient(180deg,#000,transparent)}
+header.top>*{position:relative;z-index:1}
+.meta{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(28px,6vw,46px);line-height:1.02;letter-spacing:-.02em;margin:16px 0 10px}
+.lede{color:var(--ink-2);max-width:62ch}
+.topbar{position:sticky;top:0;z-index:50;background:var(--ink);color:var(--paper);display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 20px;font-family:'JetBrains Mono',monospace;font-size:12.5px;margin:0}
+.topbar b{font-weight:700}
+.topbar .prog{opacity:.75}
+#gate{position:fixed;inset:0;z-index:80;background:rgba(16,22,31,.93);color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}
+#gate .card{max-width:520px;text-align:left}
+#gate h2{font-family:'Bricolage Grotesque',sans-serif;font-size:26px;margin:0 0 12px;font-weight:800}
+#gate p{font-size:14.5px;opacity:.85;margin:0 0 10px;line-height:1.55}
+#gate ul{font-size:14px;opacity:.85;padding-left:18px;margin:0 0 18px}
+#gate li{margin-bottom:6px}
+#gate button{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;background:#fff;color:#10161F;border:none;padding:14px 28px;border-radius:2px;cursor:pointer}
+body.locked .wrap{filter:blur(3px);pointer-events:none;user-select:none}
+.sec{margin:56px 0 0;border-top:2px solid var(--ink);padding-top:16px}
+.sec-h{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.sec-tag{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;background:var(--ink);color:var(--paper);padding:4px 9px;white-space:nowrap;margin-top:3px}
+.sec-h h2{font-family:'Bricolage Grotesque',sans-serif;font-size:23px;font-weight:700;margin:0;letter-spacing:-.01em}
+.sec-cnt{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-2);border:1px solid var(--line);padding:3px 8px;margin-left:auto;white-space:nowrap}
+.sec-desc{color:var(--ink-2);font-size:14px;margin:10px 0 22px;max-width:66ch}
+.item{background:var(--card);border:1px solid var(--line);border-radius:2px;padding:15px 17px;margin-bottom:11px}
+.item-n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-2);margin-bottom:8px;display:flex;justify-content:space-between;gap:10px}
+.item-n .kind{opacity:.8}
+.q{font-size:14.5px;margin-bottom:11px;white-space:pre-wrap;overflow-wrap:anywhere}
+input.num{font-family:'JetBrains Mono',monospace;font-size:14px;width:170px;max-width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:2px;background:var(--paper);color:var(--ink)}
+.unit{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-2);margin-left:8px}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border:1px solid var(--line-2);border-radius:2px;cursor:pointer;font-size:14px;background:var(--paper);overflow-wrap:anywhere}
+.opt:hover{border-color:var(--indigo)}
+.opt input{margin-top:3px;accent-color:var(--indigo);flex-shrink:0;width:16px;height:16px}
+textarea{width:100%;min-height:96px;font-family:'Inter',sans-serif;font-size:14px;border:1px solid var(--line);border-radius:2px;padding:10px;resize:vertical;background:var(--paper);color:var(--ink)}
+.submit-zone{margin-top:52px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+button.go{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;background:var(--ink);color:var(--paper);border:none;padding:15px 30px;border-radius:2px;cursor:pointer}
+button.go:hover{background:var(--indigo)}
+button.go[disabled]{opacity:.5;cursor:default}
+.hint{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-2)}
+.item.miss{border-color:var(--fail);background:#FFF7F6;box-shadow:0 0 0 3px rgba(163,43,34,.08)}
+.miss-note{background:var(--fail-w);color:var(--fail);border-left:3px solid var(--fail);padding:12px 14px;border-radius:2px;margin-bottom:14px;font-size:14px;display:none}
+.miss-note.on{display:block}
+.ovl{display:none;position:fixed;inset:0;z-index:96;align-items:center;justify-content:center;padding:28px;overflow:auto}
+.ovl.dark{background:#10161F;color:#fff;text-align:center}
+.ovl.light{background:#ECEEF0;color:#10161F}
+.ovl h2{font-family:'Bricolage Grotesque',sans-serif;font-size:24px;margin:0 0 12px;font-weight:800}
+.ovl p{font-size:15px;opacity:.85;line-height:1.6}
+.res{max-width:520px;width:100%}
+.res .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5C6773;text-align:center}
+.res .big{font-family:'Bricolage Grotesque',sans-serif;font-size:72px;font-weight:800;line-height:1;margin:10px 0 4px;text-align:center}
+.res .sub{font-family:'JetBrains Mono',monospace;font-size:13px;color:#5C6773;margin-bottom:22px;text-align:center}
+.res .row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #C9CFD6;font-size:14.5px}
+.res .row .v{font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.res .ok{color:var(--pass);font-weight:600}.res .no{color:var(--fail);font-weight:600}.res .na{color:#5C6773}
+footer{margin-top:70px;padding-top:16px;border-top:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-2);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+@media (max-width:600px){.sec-cnt{margin-left:0}.topbar{font-size:11.5px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body class="locked">
+
+<div id="linkerr" class="ovl dark">
+ <div style="max-width:440px">
+  <h2 id="lerr-t">Ссылка недействительна</h2>
+  <p id="lerr-b">Проверьте, что открыли ссылку целиком. Если она не работает — напишите тому, кто её прислал.</p>
+ </div></div>
+
+<div id="done" class="ovl light">
+ <div class="res">
+  <div class="eyebrow">Тест завершён</div>
+  <div class="big" id="r-big">—</div>
+  <div class="sub" id="r-sub">по закрытым вопросам</div>
+  <div id="r-blocks"></div>
+  <p style="margin-top:22px;text-align:center">Ответы сохранены. Открытые вопросы проверит руководитель и вернётся с результатом.</p>
+ </div></div>
+
+<div id="gate"><div class="card">
+<h2 id="g-title">Перед началом</h2>
+<p id="who" style="font-size:15px;opacity:1;margin-bottom:14px"></p>
+<p id="g-intro">Проверка того, что усвоено из теории. Один заход без пауз: время засекается с момента старта и идёт, даже если закрыть вкладку.</p>
+<ul>
+<li>Закрытые вопросы проверяются автоматически, открытые читает руководитель</li>
+<li>Калькулятор разрешён</li>
+<li>Уходы со страницы и вставка скопированного текста фиксируются</li>
+<li>Отвечайте сами: ответ из нейросети виден при чтении, а на разборе блока его придётся объяснить</li>
+</ul>
+<p>Убедитесь, что вас не будут отвлекать.</p>
+<button id="gbtn">Начать</button>
+</div></div>
+
+<div class="topbar"><span><b>Теория</b> <span id="tb-att"></span></span><span class="prog" id="tb-prog"></span></div>
+
+<div class="wrap">
+<header class="top">
+  <div class="meta"><span id="hdr-meta">Проверка знаний</span><span id="today"></span></div>
+  <h1>Теория</h1>
+  <div class="lede" id="lede">Вопросы сгруппированы по темам. У закрытых вопросов один верный вариант, если не сказано иначе. Числа вводите без символов валюты и процента, дробные — через точку.</div>
+</header>
+
+<div id="blocks"></div>
+
+<div class="miss-note" id="missNote"></div>
+<div class="submit-zone"><button class="go" id="go">Завершить тест</button><span class="hint">// незаполненное будет подсвечено</span></div>
+<footer><span></span><span>После проверки с вами свяжется руководитель</span></footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============ ПОДКЛЮЧЕНИЕ ============ */
+const SB_URL='https://ebyrccbbpzdfwdfgpysd.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVieXJjY2JicHpkZndkZmdweXNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3MTM4NTcsImV4cCI6MjEwMjI4OTg1N30.kEQvX6kV-FwwRLG653AyyMnaUflLjsO2Bn-20vw72fQ';
+const TOKEN=new URLSearchParams(location.search).get('t');
+const PREVIEW=!TOKEN;                       // без токена — просмотр на примерных вопросах, ничего не пишется
+let sb=null;
+try{ if(window.supabase) sb=window.supabase.createClient(SB_URL,SB_KEY); }catch(e){ console.warn(e); }
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KIND={single:'один верный',multi:'несколько верных — отметьте все',number:'число',open:'своими словами'};
+
+/* примерные вопросы для режима просмотра (в настоящем тесте приходят из базы) */
+const DEMO=[{block_id:'d1',name:'Пример блока',questions:[
+ {id:'q1',type:'single',text:'CTR — это',options:['клики ÷ показы','расход ÷ клики','заявки ÷ клики']},
+ {id:'q2',type:'multi',text:'Из чего складывается выручка',options:['конверсии','выплата за конверсию','CTR']},
+ {id:'q3',type:'number',text:'Расход $60, кликов 100. Чему равен CPC?',unit:'$'},
+ {id:'q4',type:'open',text:'Почему при падении CR растёт CPA? Объясните своими словами.'}]}];
+
+let BLOCKS=[], started=false, saveTimer=null, lastSaved='';
+
+/* ============ RENDER ============ */
+function shuffled(n){const idx=[...Array(n).keys()];for(let k=n-1;k>0;k--){const r=Math.floor(Math.random()*(k+1));[idx[k],idx[r]]=[idx[r],idx[k]];}return idx;}
+function render(blocks){
+ BLOCKS=blocks; const root=$('blocks'); root.innerHTML='';
+ let total=0;
+ blocks.forEach((b,bi)=>{
+  const sec=document.createElement('div'); sec.className='sec'; sec.dataset.blk=b.name;
+  sec.innerHTML=`<div class="sec-h"><span class="sec-tag">${String(bi+1).padStart(2,'0')}</span><h2>${esc(b.name)}</h2><span class="sec-cnt">${b.questions.length} ${plural(b.questions.length,'вопрос','вопроса','вопросов')}</span></div>`;
+  b.questions.forEach((q,qi)=>{
+   total++;
+   const d=document.createElement('div'); d.className='item'; d.id='it-'+q.id;
+   let h=`<div class="item-n"><span>${bi+1}.${qi+1}</span><span class="kind">${KIND[q.type]||''}</span></div><div class="q">${esc(q.text)}</div>`;
+   if(q.type==='single'||q.type==='multi'){
+    // порядок вариантов на экране случайный, отправляется исходный номер — ключ в базе от порядка не зависит
+    h+='<div class="opts">';
+    shuffled((q.options||[]).length).forEach(j=>{
+     h+=`<label class="opt"><input type="${q.type==='single'?'radio':'checkbox'}" name="${q.id}" value="${j}"><span>${esc(q.options[j])}</span></label>`;});
+    h+='</div>';
+   } else if(q.type==='number'){
+    h+=`<input class="num" type="text" inputmode="decimal" id="in-${q.id}" placeholder="—" autocomplete="off">${q.unit?`<span class="unit">${esc(q.unit)}</span>`:''}`;
+   } else {
+    h+=`<textarea id="in-${q.id}" placeholder="Ответ…"></textarea>`;
+   }
+   d.innerHTML=h; sec.appendChild(d);
+  });
+  root.appendChild(sec);
+ });
+ $('tb-prog').textContent=`0 / ${total} отвечено`;
+ TOTAL=total;
+}
+let TOTAL=0;
+function plural(n,a,b,c){const m=n%10,M=n%100;return (m===1&&M!==11)?a:(m>=2&&m<=4&&(M<10||M>=20))?b:c;}
+
+/* ============ ОТВЕТЫ ============ */
+function answerOf(q){
+ if(q.type==='single'){const e=document.querySelector(`input[name="${q.id}"]:checked`);return e?e.value:null;}
+ if(q.type==='multi'){const v=[...document.querySelectorAll(`input[name="${q.id}"]:checked`)].map(e=>+e.value).sort((a,b)=>a-b);return v.length?v.join(','):null;}
+ const e=$('in-'+q.id); if(!e)return null;
+ const v=e.value.trim(); if(!v)return null;
+ return q.type==='number'? v.replace(',','.').replace(/[^\d.\-]/g,'') : v;
+}
+function collect(){const A={};BLOCKS.forEach(b=>b.questions.forEach(q=>{A[q.id]=answerOf(q);}));return A;}
+function restore(st){
+ const A=(st&&st.a)||{};
+ BLOCKS.forEach(b=>b.questions.forEach(q=>{
+  const v=A[q.id]; if(v==null||v==='')return;
+  if(q.type==='single'){const e=document.querySelector(`input[name="${q.id}"][value="${v}"]`);if(e)e.checked=true;}
+  else if(q.type==='multi'){String(v).split(',').forEach(x=>{const e=document.querySelector(`input[name="${q.id}"][value="${x}"]`);if(e)e.checked=true;});}
+  else{const e=$('in-'+q.id);if(e)e.value=v;}
+ }));
+ updateProgress();
+}
+function updateProgress(){
+ const A=collect(); const n=Object.values(A).filter(v=>v!=null&&v!=='').length;
+ $('tb-prog').textContent=`${n} / ${TOTAL} отвечено`;
+}
+document.addEventListener('input',updateProgress,true);
+document.addEventListener('change',updateProgress,true);
+// подсветка «не отвечено» снимается, как только вопрос заполнен
+function clearMiss(e){
+ const it=e.target.closest&&e.target.closest('.item.miss'); if(!it)return;
+ const q=BLOCKS.flatMap(b=>b.questions).find(x=>'it-'+x.id===it.id);
+ if(q&&answerOf(q)!=null){ it.classList.remove('miss');
+  if(!document.querySelector('.item.miss'))$('missNote').classList.remove('on'); }
+}
+document.addEventListener('input',clearMiss,true);
+document.addEventListener('change',clearMiss,true);
+
+/* ============ TELEMETRY (как в первичном тесте) ============ */
+const BT={};let away=0,awayMs=0,leftAt=0,pastes=0,bursts=0;
+document.addEventListener('input',e=>{const sec=e.target.closest('.sec');if(!sec)return;const k=sec.dataset.blk;
+ const t=Date.now();if(!BT[k])BT[k]={s:t,e:t};BT[k].e=t;},true);
+document.addEventListener('change',e=>{const sec=e.target.closest('.sec');if(!sec)return;const k=sec.dataset.blk;
+ const t=Date.now();if(!BT[k])BT[k]={s:t,e:t};BT[k].e=t;},true);
+const span=k=>BT[k]?Math.round((BT[k].e-BT[k].s)/60000*10)/10:null;
+document.addEventListener('visibilitychange',()=>{if(document.hidden){away++;leftAt=Date.now();}
+ else if(leftAt){awayMs+=Date.now()-leftAt;leftAt=0;}});
+window.addEventListener('blur',()=>{if(!document.hidden)leftAt=leftAt||Date.now();});
+window.addEventListener('focus',()=>{if(leftAt&&!document.hidden){awayMs+=Date.now()-leftAt;leftAt=0;}});
+document.addEventListener('paste',e=>{const t=e.target;
+ if(t.tagName==='INPUT'||t.tagName==='TEXTAREA'){e.preventDefault();pastes++;}},true);
+const lastLen={};
+document.addEventListener('input',e=>{const t=e.target;if(!t.id)return;
+ const p=lastLen[t.id]||0,n=(t.value||'').length;if(n-p>25)bursts++;lastLen[t.id]=n;},true);
+
+/* ============ СТАРТ, АВТОСОХРАНЕНИЕ ============ */
+async function startTest(){
+ if(started)return;
+ started=true;
+ document.body.classList.remove('locked');
+ $('gate').style.display='none';
+ if(!PREVIEW&&sb){
+  try{ await sb.rpc('theory_start',{p_token:TOKEN}); }catch(e){console.warn('start',e);}
+  beginAutosave();
+ }
+}
+$('gbtn').addEventListener('click',()=>startTest());
+function beginAutosave(){
+ if(PREVIEW||!sb||saveTimer)return;
+ saveTimer=setInterval(async()=>{
+  try{
+   const st=JSON.stringify({a:collect()});
+   if(st===lastSaved)return;
+   await sb.rpc('theory_save',{p_token:TOKEN,p_state:JSON.parse(st)});
+   lastSaved=st;
+  }catch(e){console.warn('autosave',e);}
+ },20000);
+}
+
+/* ============ ЗАПУСК ============ */
+function showOverlay(id){const e=$(id);if(e)e.style.display='flex';}
+async function boot(){
+ $('today').textContent=new Date().toLocaleDateString('ru-RU');
+ if(PREVIEW){
+  render(DEMO);
+  $('who').textContent='Режим просмотра: вопросы примерные, результаты не сохраняются.';
+  $('hdr-meta').textContent='Режим просмотра';
+  return;
+ }
+ if(!sb){$('lerr-t').textContent='Не удалось подключиться';$('lerr-b').textContent='Проверьте интернет и обновите страницу.';showOverlay('linkerr');return;}
+ try{
+  const {data,error}=await sb.rpc('theory_open',{p_token:TOKEN});
+  if(error)throw error;
+  if(!data||!data.ok){
+   if(data&&data.reason==='already_finished'){
+    $('lerr-t').textContent='Тест уже пройден';
+    $('lerr-b').textContent='Эта ссылка одноразовая и больше не открывается. Результат отправлен руководителю.';
+   }
+   showOverlay('linkerr');return;
+  }
+  render(data.blocks||[]);
+  if(!TOTAL){
+   $('lerr-t').textContent='В тесте пока нет вопросов';
+   $('lerr-b').textContent='Напишите тому, кто прислал ссылку.';
+   showOverlay('linkerr');return;
+  }
+  $('who').textContent=(data.candidate_name?data.candidate_name+'. ':'')+
+    (data.attempt_no>1?`Пересдача, попытка ${data.attempt_no}: ${data.blocks.map(b=>b.name).join(', ')}.`:'');
+  if(data.attempt_no>1){$('g-title').textContent='Пересдача';$('tb-att').textContent='· попытка '+data.attempt_no;}
+  restore(data.state);
+  if(data.started){$('gbtn').textContent='Продолжить';}
+ }catch(e){
+  console.warn(e);
+  $('lerr-t').textContent='Не удалось открыть тест';
+  $('lerr-b').textContent='Обновите страницу. Если не помогает — напишите тому, кто прислал ссылку. '+(e&&e.message?'('+e.message+')':'');
+  showOverlay('linkerr');
+ }
+}
+boot();
+
+/* ============ СДАЧА ============ */
+function missing(){
+ const m=[];
+ BLOCKS.forEach((b,bi)=>b.questions.forEach(q=>{ if(answerOf(q)==null) m.push({name:String(bi+1).padStart(2,'0')+' · '+b.name, el:$('it-'+q.id)}); }));
+ return m;
+}
+function showMissing(m){
+ document.querySelectorAll('.item.miss').forEach(e=>e.classList.remove('miss'));
+ m.forEach(x=>x.el&&x.el.classList.add('miss'));
+ const names=[...new Set(m.map(x=>x.name))];
+ const note=$('missNote');
+ note.innerHTML=`<b>Осталось ответить: ${m.length} ${plural(m.length,'вопрос','вопроса','вопросов')}.</b>`+
+   `<div style="margin-top:5px">${names.map(esc).join(' · ')}</div>`+
+   `<div style="margin-top:6px;font-size:13px;opacity:.85">Незаполненное подсвечено красным. Если не знаете — отвечайте наиболее вероятным.</div>`;
+ note.classList.add('on');
+ const first=m[0]&&m[0].el;
+ if(first){first.scrollIntoView({behavior:'smooth',block:'center'});
+  const f=first.querySelector('input,textarea');setTimeout(()=>{try{f&&f.focus({preventScroll:true});}catch(e){}},400);}
+}
+function showResult(r){
+ const pct=r.pct;
+ $('r-big').textContent=pct==null?'—':pct+'%';
+ $('r-sub').textContent=pct==null?'закрытых вопросов не было':(r.passed?'по закрытым вопросам · зачёт':'по закрытым вопросам');
+ $('r-blocks').innerHTML=(r.blocks||[]).map(b=>`<div class="row"><span>${esc(b.name)}</span><span class="v ${b.pct==null?'na':b.passed?'ok':'no'}">${
+   b.pct==null?'проверит руководитель':`${b.correct} из ${b.closed} · ${b.pct}% ${b.passed?'✓':'✗'}`}</span></div>`).join('');
+ showOverlay('done');
+}
+$('go').addEventListener('click',()=>finish());
+async function finish(){
+ if(!started){alert('Сначала нажмите «Начать».');return;}
+ const m=missing();
+ if(m.length){ showMissing(m); return; }
+ $('missNote').classList.remove('on');
+ document.querySelectorAll('.item.miss').forEach(e=>e.classList.remove('miss'));
+ if(PREVIEW||!sb){
+  alert('Режим просмотра: ответы не отправляются и не проверяются. Для настоящего прохождения нужна личная ссылка.');
+  return;
+ }
+ if(saveTimer){clearInterval(saveTimer);saveTimer=null;}
+ $('go').disabled=true;$('go').textContent='Отправляем…';
+ const telemetry={away,away_ms:awayMs,pastes,bursts,
+   block_times:Object.fromEntries(Object.keys(BT).map(k=>[k,span(k)]))};
+ try{
+  const {data,error}=await sb.rpc('theory_submit',{p_token:TOKEN,p_answers:collect(),p_telemetry:telemetry});
+  if(error)throw error;
+  if(!data||!data.ok){
+   $('go').disabled=false;$('go').textContent='Завершить тест';
+   alert(data&&data.reason==='already_finished'?'Этот тест уже отправлен.':'Не удалось отправить. Попробуйте ещё раз.');
+   return;
+  }
+  showResult(data);
+ }catch(e){
+  console.warn(e);
+  $('go').disabled=false;$('go').textContent='Завершить тест';
+  beginAutosave();
+  alert('Не удалось отправить результат: '+(e&&e.message?e.message:'неизвестная ошибка')+
+        '\n\nВведённое сохранено — нажмите ещё раз.');
+ }
+}
+</script>
+</body>
+</html>
