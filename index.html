@@ -761,7 +761,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){away++;lef
 window.addEventListener('blur',()=>{if(!document.hidden)leftAt=leftAt||Date.now();});
 window.addEventListener('focus',()=>{if(leftAt&&!document.hidden){awayMs+=Date.now()-leftAt;leftAt=0;}});
 document.addEventListener('paste',e=>{const t=e.target;
- if(t.tagName==='INPUT'||t.tagName==='TEXTAREA'){e.preventDefault();pastes++;}},true);
+ if(t.tagName==='INPUT'||t.tagName==='TEXTAREA'){pastes++;}},true);
 const lastLen={};
 document.addEventListener('input',e=>{const t=e.target;if(!t.id)return;
  const p=lastLen[t.id]||0,n=(t.value||'').length;if(n-p>25)bursts++;lastLen[t.id]=n;},true);
