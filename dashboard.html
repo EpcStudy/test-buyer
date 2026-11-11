@@ -609,7 +609,7 @@ function renderCard(c,a,ans){
   <div class="cardbox">
     <h3>Признаки подсказок со стороны</h3>
     <div class="kv"><span class="k">Уходил с вкладки</span><span class="v">${tel.away??0} раз${tel.away_ms?', '+Math.round(tel.away_ms/1000)+' сек':''}</span></div>
-    <div class="kv"><span class="k">Пытался вставить скопированный текст</span><span class="v">${tel.pastes??0}</span></div>
+    <div class="kv"><span class="k">Вставлял скопированный текст</span><span class="v">${tel.pastes??0}</span></div>
     <div class="kv"><span class="k">Текст появлялся целым куском</span><span class="v">${tel.bursts??0}</span></div>
     <div class="verdict ${(tel.signals||0)>=2?'r':(tel.signals||0)==1?'':'g'}" style="${(tel.signals||0)==1?'background:var(--warn-w);color:var(--warn)':''}">
       ${(tel.signals||0)>=2?'Сигналов '+tel.signals+' из 3 — стоит проверить живьём в созвоне'
