@@ -704,7 +704,7 @@ for(let i=0;i<12;i++){const r=document.createElement('div');r.className='gen-row
  r.innerHTML=`<span class="gen-i">${String(i+1).padStart(2,'0')}</span><input type="text" id="gen${i}" placeholder="${ph.replace('{n}',i+1)}">`;$('genBox').appendChild(r);}
 function ranking(box,data,pfx,mx,sn){data.forEach((raw,bi)=>{const bl=Array.isArray(raw)?raw:raw.s;const d=document.createElement('div');d.className='item';
  let h=`<div class="item-n">${sn}.${bi+1}</div>`;
- if(!Array.isArray(raw)&&raw.h)h+=`<div class="q">${raw.h}</div>`;
+ if(!Array.isArray(raw)&&raw.h)h+=`<div class="q" style="font-weight:700">${raw.h}</div>`;
  // порядок утверждений на экране случайный, но каждое помнит свой исходный номер —
  // поэтому ключ в базе не зависит от того, в каком порядке кандидат их увидел
  let idx=bl.map((_,j)=>j);
