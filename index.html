@@ -751,7 +751,7 @@ $('today').textContent=new Date().toLocaleDateString('ru-RU');
 })();
 
 /* ============ TELEMETRY ============ */
-const BT={};let away=0,awayMs=0,leftAt=0,pastes=0,bursts=0;
+const BT={};let away=0,awayMs=0,leftAt=0,pastes=0,bursts=0,copies=0;
 document.querySelectorAll('.sec[data-blk]').forEach(sec=>{const k=sec.dataset.blk;
  const mark=()=>{const t=Date.now();if(!BT[k])BT[k]={s:t,e:t};BT[k].e=t;};
  sec.addEventListener('input',mark);sec.addEventListener('change',mark);});
@@ -760,6 +760,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){away++;lef
  else if(leftAt){awayMs+=Date.now()-leftAt;leftAt=0;}});
 window.addEventListener('blur',()=>{if(!document.hidden)leftAt=leftAt||Date.now();});
 window.addEventListener('focus',()=>{if(leftAt&&!document.hidden){awayMs+=Date.now()-leftAt;leftAt=0;}});
+document.addEventListener('copy',()=>{const sel=String(document.getSelection()||'');if(sel.length>15)copies++;},true);
 document.addEventListener('paste',e=>{const t=e.target;
  if(t.tagName==='INPUT'||t.tagName==='TEXTAREA'){pastes++;}},true);
 const lastLen={};
@@ -975,7 +976,7 @@ async function finish(force){
  }
  $('go').disabled=true;$('go').textContent='Отправляем…';
  try{ await sb.rpc('save_self_name',{p_token:TOKEN,p_name:SELF_NAME}); }catch(e){}
- const telemetry={away,away_ms:awayMs,pastes,bursts,
+ const telemetry={away,away_ms:awayMs,pastes,bursts,copies,
    block_times:Object.fromEntries(Object.keys(BT).map(k=>[k,span(k)]))};
  try{
   const {data,error}=await sb.rpc('submit_test',{
